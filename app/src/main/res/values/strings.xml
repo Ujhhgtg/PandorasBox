@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">Aim Assistant</string>
+    <string name="show_overlay">Show Overlay</string>
+    <string name="hide_overlay">Hide Overlay</string>
+    <string name="usage_stats_perm_required">Usage stats permission is required to query foreground app.</string>
+    <string name="overlay_perm_required">Overlay permission is required to display overlays.</string>
+    <string name="notification_perm_required">Notification permission is required to start foreground services.</string>
+    <string name="overlay">Overlay</string>
+    <string name="settings">Settings</string>
+    <string name="aim_bot">Aim Bot</string>
+    <string name="line_width">Line Width</string>
+    <string name="dot_size">Dot Size</string>
+    <string name="vertical_offset">Vertical Offset</string>
+    <string name="horizontal_offset">Horizontal Offset</string>
+    <string name="camera_perm_required">Camera permission is required to use cameras.</string>
+</resources>
