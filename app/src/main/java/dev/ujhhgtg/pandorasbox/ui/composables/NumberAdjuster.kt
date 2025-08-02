@@ -1,4 +1,4 @@
-package dev.ujhhgtg.aimassistant.ui.composables
+package dev.ujhhgtg.pandorasbox.ui.composables
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -24,13 +24,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
-import dev.ujhhgtg.aimassistant.R
-import dev.ujhhgtg.aimassistant.utils.NumberOperations.Companion.add
-import dev.ujhhgtg.aimassistant.utils.NumberOperations.Companion.coerceIn
-import dev.ujhhgtg.aimassistant.utils.NumberOperations.Companion.compareTo
-import dev.ujhhgtg.aimassistant.utils.NumberOperations.Companion.divide
-import dev.ujhhgtg.aimassistant.utils.NumberOperations.Companion.subtract
-import dev.ujhhgtg.aimassistant.utils.NumberOperations.Companion.toGeneric
+import dev.ujhhgtg.pandorasbox.R
+import dev.ujhhgtg.pandorasbox.utils.NumberOperations.Companion.add
+import dev.ujhhgtg.pandorasbox.utils.NumberOperations.Companion.coerceIn
+import dev.ujhhgtg.pandorasbox.utils.NumberOperations.Companion.compareTo
+import dev.ujhhgtg.pandorasbox.utils.NumberOperations.Companion.divide
+import dev.ujhhgtg.pandorasbox.utils.NumberOperations.Companion.subtract
+import dev.ujhhgtg.pandorasbox.utils.NumberOperations.Companion.toGeneric
 
 @Composable
 fun <T> NumberAdjuster(

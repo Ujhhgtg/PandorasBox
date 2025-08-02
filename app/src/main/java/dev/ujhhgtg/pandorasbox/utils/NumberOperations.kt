@@ -1,4 +1,4 @@
-package dev.ujhhgtg.aimassistant.utils
+package dev.ujhhgtg.pandorasbox.utils
 
 class NumberOperations {
     companion object {

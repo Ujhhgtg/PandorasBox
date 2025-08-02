@@ -1,10 +1,10 @@
-package dev.ujhhgtg.aimassistant.receivers
+package dev.ujhhgtg.pandorasbox.receivers
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import dev.ujhhgtg.aimassistant.services.AimBotService
-import dev.ujhhgtg.aimassistant.services.OverlayService
+import dev.ujhhgtg.pandorasbox.services.AimBotService
+import dev.ujhhgtg.pandorasbox.services.OverlayService
 import java.security.InvalidParameterException
 
 class StopServiceReceiver : BroadcastReceiver() {

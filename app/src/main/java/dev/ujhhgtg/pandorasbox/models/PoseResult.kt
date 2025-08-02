@@ -1,6 +1,4 @@
-package dev.ujhhgtg.aimassistant.models
-
-import com.google.mlkit.vision.pose.Pose
+package dev.ujhhgtg.pandorasbox.models
 
 data class PoseResult(
     val pose: List<PoseLandmark>,

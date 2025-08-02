@@ -1,4 +1,4 @@
-package dev.ujhhgtg.aimassistant.ui.composables
+package dev.ujhhgtg.pandorasbox.ui.composables
 
 import android.content.Intent
 import androidx.compose.foundation.Image
@@ -43,8 +43,8 @@ import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
-import dev.ujhhgtg.aimassistant.utils.SettingsRepository
-import dev.ujhhgtg.aimassistant.models.AppInfo
+import dev.ujhhgtg.pandorasbox.utils.SettingsRepository
+import dev.ujhhgtg.pandorasbox.models.AppInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

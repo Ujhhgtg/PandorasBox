@@ -1,4 +1,4 @@
-package dev.ujhhgtg.aimassistant.ui.composables
+package dev.ujhhgtg.pandorasbox.ui.composables
 
 import androidx.compose.runtime.Composable
 

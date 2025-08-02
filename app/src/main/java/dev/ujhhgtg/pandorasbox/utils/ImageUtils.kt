@@ -1,4 +1,4 @@
-package dev.ujhhgtg.aimassistant.utils
+package dev.ujhhgtg.pandorasbox.utils
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory

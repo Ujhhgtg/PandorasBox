@@ -1,4 +1,4 @@
-package dev.ujhhgtg.aimassistant.ui.theme
+package dev.ujhhgtg.pandorasbox.ui.theme
 
 import androidx.compose.material3.Typography
 

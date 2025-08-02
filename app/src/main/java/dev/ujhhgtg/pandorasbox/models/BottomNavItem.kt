@@ -1,4 +1,4 @@
-package dev.ujhhgtg.aimassistant.models
+package dev.ujhhgtg.pandorasbox.models
 
 import androidx.compose.runtime.Composable
 

@@ -1,4 +1,4 @@
-package dev.ujhhgtg.aimassistant.ui.theme
+package dev.ujhhgtg.pandorasbox.ui.theme
 import androidx.compose.ui.graphics.Color
 
 val primaryLight = Color(0xFF415F91)

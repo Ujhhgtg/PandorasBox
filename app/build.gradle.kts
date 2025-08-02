@@ -1,3 +1,11 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
+
+tasks.withType<KotlinJvmCompile>().configureEach {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+    }
+}
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -6,11 +14,11 @@ plugins {
 }
 
 android {
-    namespace = "dev.ujhhgtg.aimassistant"
+    namespace = "dev.ujhhgtg.pandorasbox"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "dev.ujhhgtg.aimassistant"
+        applicationId = "dev.ujhhgtg.pandorasbox"
         minSdk = 35
         targetSdk = 36
         versionCode = 1
@@ -37,9 +45,9 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    kotlinOptions {
-        jvmTarget = "17"
-    }
+//    kotlinOptions {
+//        jvmTarget = "17"
+//    }
     buildFeatures {
         compose = true
         buildConfig = true
@@ -62,7 +70,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.navigation.runtime.android)
     debugImplementation(libs.androidx.ui.tooling)
-    debugImplementation(libs.androidx.ui.test.manifest)
+//    debugImplementation(libs.androidx.ui.test.manifest)
 
     // Tests
 //    testImplementation(libs.junit)

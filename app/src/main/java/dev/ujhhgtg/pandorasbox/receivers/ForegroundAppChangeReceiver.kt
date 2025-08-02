@@ -1,4 +1,4 @@
-package dev.ujhhgtg.aimassistant.receivers
+package dev.ujhhgtg.pandorasbox.receivers
 
 import android.content.BroadcastReceiver
 import android.content.Context

@@ -1,4 +1,4 @@
-package dev.ujhhgtg.aimassistant.xposed
+package dev.ujhhgtg.pandorasbox.xposed
 
 import android.app.Application
 import android.content.Intent
@@ -7,7 +7,7 @@ import com.highcapable.yukihookapi.YukiHookAPI
 import com.highcapable.yukihookapi.annotation.xposed.InjectYukiHookWithXposed
 import com.highcapable.yukihookapi.hook.factory.configs
 import com.highcapable.yukihookapi.hook.xposed.proxy.IYukiHookXposedInit
-import dev.ujhhgtg.aimassistant.BuildConfig
+import dev.ujhhgtg.pandorasbox.BuildConfig
 
 @InjectYukiHookWithXposed
 object HookEntry : IYukiHookXposedInit {
@@ -30,9 +30,9 @@ object HookEntry : IYukiHookXposedInit {
                                 returnType = Application::class
                             }.of(null).invoke() as Application
 
-                        context.sendBroadcast(Intent("dev.ujhhgtg.aimassistant.ACTION_FOREGROUND_APP_CHANGE").apply {
+                        context.sendBroadcast(Intent("dev.ujhhgtg.pandorasbox.ACTION_FOREGROUND_APP_CHANGE").apply {
                             putExtra("packageName", packageName)
-                            setPackage("dev.ujhhgtg.aimassistant")
+                            setPackage("dev.ujhhgtg.pandorasbox")
                         })
                     }
                 }

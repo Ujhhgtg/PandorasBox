@@ -1,4 +1,4 @@
-package dev.ujhhgtg.aimassistant.utils
+package dev.ujhhgtg.pandorasbox.utils
 
 import android.Manifest
 import android.app.Activity
@@ -13,7 +13,7 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
-import dev.ujhhgtg.aimassistant.R
+import dev.ujhhgtg.pandorasbox.R
 import rikka.shizuku.Shizuku
 
 class PermissionManager {

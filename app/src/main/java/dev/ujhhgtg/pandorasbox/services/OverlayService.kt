@@ -1,4 +1,4 @@
-package dev.ujhhgtg.aimassistant.services
+package dev.ujhhgtg.pandorasbox.services
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -18,10 +18,10 @@ import android.widget.FrameLayout
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.app.NotificationCompat
-import dev.ujhhgtg.aimassistant.R
-import dev.ujhhgtg.aimassistant.receivers.StopServiceReceiver
-import dev.ujhhgtg.aimassistant.utils.PermissionManager
-import dev.ujhhgtg.aimassistant.utils.SettingsRepository
+import dev.ujhhgtg.pandorasbox.R
+import dev.ujhhgtg.pandorasbox.receivers.StopServiceReceiver
+import dev.ujhhgtg.pandorasbox.utils.PermissionManager
+import dev.ujhhgtg.pandorasbox.utils.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
