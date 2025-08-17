@@ -6,13 +6,15 @@ import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
+import android.util.Log
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.app.NotificationCompat
 import dev.ujhhgtg.pandorasbox.R
-import dev.ujhhgtg.pandorasbox.utils.SettingsRepository
 import dev.ujhhgtg.pandorasbox.receivers.StopServiceReceiver
 import dev.ujhhgtg.pandorasbox.utils.PermissionManager
+import dev.ujhhgtg.pandorasbox.utils.ServiceLocator
+import dev.ujhhgtg.pandorasbox.utils.SettingsRepository
 
 class AimBotService: Service() {
     private lateinit var settings: SettingsRepository
@@ -20,6 +22,8 @@ class AimBotService: Service() {
     companion object {
         @Volatile
         var isRunning: MutableState<Boolean> = mutableStateOf(false)
+        const val TAG: String = "PB.AimBotService"
+        const val ID: Int = 2
     }
 
     override fun onCreate() {
@@ -28,12 +32,14 @@ class AimBotService: Service() {
         if (!PermissionManager.checkNotifications(this) ||
             !PermissionManager.checkOverlay(this) ||
             !PermissionManager.checkShizuku()) {
+            Log.d(TAG, "required permissions are not granted")
             throw IllegalAccessException("required permissions are not granted")
         }
 
         isRunning.value = true
         startForegroundServiceWithNotification()
         settings = SettingsRepository(this)
+        ServiceLocator.register(this)
     }
 
     private fun startForegroundServiceWithNotification() {
@@ -47,7 +53,7 @@ class AimBotService: Service() {
         manager.createNotificationChannel(channel)
 
         val stopIntent = Intent(this, StopServiceReceiver::class.java)
-        stopIntent.putExtra("service", 1)
+        stopIntent.putExtra("service", ID)
         val stopPendingIntent = PendingIntent.getBroadcast(
             this,
             0,
@@ -65,13 +71,13 @@ class AimBotService: Service() {
             .setOngoing(true)
             .build()
 
-        startForeground(2, notification)
+        startForeground(ID, notification)
     }
 
     override fun onDestroy() {
         super.onDestroy()
 
-
+        isRunning.value = false
     }
 
     override fun onBind(intent: Intent?): IBinder? = null

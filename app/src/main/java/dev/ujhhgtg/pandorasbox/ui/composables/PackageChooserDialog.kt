@@ -16,7 +16,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
@@ -37,14 +36,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
-import dev.ujhhgtg.pandorasbox.utils.SettingsRepository
+import dev.ujhhgtg.pandorasbox.R
 import dev.ujhhgtg.pandorasbox.models.AppInfo
+import dev.ujhhgtg.pandorasbox.utils.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -52,15 +54,15 @@ import kotlinx.coroutines.withContext
 
 @Composable
 fun PackageChooserDialog(
+    settings: SettingsRepository,
     onDismiss: () -> Unit,
     onSelect: (String) -> Unit
 ) {
     val context = LocalContext.current
-    val settingsRepository by remember { mutableStateOf(SettingsRepository(context)) }
     var isLoading by remember { mutableStateOf(true) }
     var apps by remember { mutableStateOf(listOf<AppInfo>()) }
     var searchQuery by remember { mutableStateOf("") }
-    var appToClearConfig by remember { mutableStateOf("") }
+    var pkgToClearConfig by remember { mutableStateOf("") }
     var showClearConfigDialog by remember { mutableStateOf(false) }
     val coroutineScope by remember { mutableStateOf(CoroutineScope(Dispatchers.Main)) }
     val interactionSource = remember { MutableInteractionSource() }
@@ -97,7 +99,7 @@ fun PackageChooserDialog(
                     OutlinedTextField(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
-                        label = { Text("Search") },
+                        label = { Text(stringResource(R.string.search)) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 8.dp),
@@ -119,6 +121,29 @@ fun PackageChooserDialog(
                             ListItem(
                                 headlineContent = { Text("Default") },
                                 leadingContent = { Icon(imageVector = Icons.Default.Settings, contentDescription = "default") },
+                                trailingContent = {
+                                    if (settings.hasOverlayConfigOfPackage("default")) {
+                                        Icon(
+                                            imageVector = Icons.Default.Check,
+                                            contentDescription = "has config",
+                                            tint = Color.Green,
+                                            modifier = Modifier.clickable(
+                                                interactionSource = interactionSource,
+                                                indication = null
+                                            ) {
+                                                pkgToClearConfig = "default"
+                                                showClearConfigDialog = true
+                                            }
+                                        )
+                                    }
+                                    else {
+                                        Icon(
+                                            painter = painterResource(R.drawable.block_24px),
+                                            contentDescription = "has no config",
+                                            tint = Color.Red
+                                        )
+                                    }
+                                },
                                 modifier = Modifier.clickable {
                                     onSelect("default")
                                 }
@@ -139,7 +164,7 @@ fun PackageChooserDialog(
                                     )
                                 },
                                 trailingContent = {
-                                    if (settingsRepository.hasConfigOfPackage(app.packageName)) {
+                                    if (settings.hasOverlayConfigOfPackage(app.packageName)) {
                                         Icon(
                                             imageVector = Icons.Default.Check,
                                             contentDescription = "has config",
@@ -148,15 +173,15 @@ fun PackageChooserDialog(
                                                 interactionSource = interactionSource,
                                                 indication = null
                                             ) {
-                                                appToClearConfig = app.packageName
+                                                pkgToClearConfig = app.packageName
                                                 showClearConfigDialog = true
                                             }
                                         )
                                     }
                                     else {
                                         Icon(
-                                            imageVector = Icons.Default.Close,
-                                            contentDescription = "no config",
+                                            painter = painterResource(R.drawable.block_24px),
+                                            contentDescription = "has no config",
                                             tint = Color.Red
                                         )
                                     }
@@ -184,10 +209,10 @@ fun PackageChooserDialog(
                 TextButton(onClick = { showClearConfigDialog = false } ) { Text("Cancel") }
                 TextButton(onClick = {
                     coroutineScope.launch {
-                        settingsRepository.removeSingleConfig(floatPreferencesKey("${appToClearConfig}_horizontal_offset"))
-                        settingsRepository.removeSingleConfig(floatPreferencesKey("${appToClearConfig}_vertical_offset"))
-                        settingsRepository.removeSingleConfig(intPreferencesKey("${appToClearConfig}_dot_size"))
-                        settingsRepository.removeSingleConfig(intPreferencesKey("${appToClearConfig}_line_width"))
+                        settings.removeSingleConfig(floatPreferencesKey("o_${pkgToClearConfig}_h"))
+                        settings.removeSingleConfig(floatPreferencesKey("o_${pkgToClearConfig}_v"))
+                        settings.removeSingleConfig(intPreferencesKey("o_${pkgToClearConfig}_s"))
+                        settings.removeSingleConfig(intPreferencesKey("o_${pkgToClearConfig}_w"))
                     }
                     showClearConfigDialog = false
                 } ) { Text("OK") }

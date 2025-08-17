@@ -20,5 +20,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Aim Assistant"
+rootProject.name = "Pandora's Box"
 include(":app")

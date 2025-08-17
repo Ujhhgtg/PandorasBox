@@ -16,17 +16,8 @@ import kotlinx.coroutines.runBlocking
 val Context.dataStore by preferencesDataStore(name = "settings")
 
 class SettingsRepository(private val context: Context) {
-//    suspend fun saveConfigForApp(config: OverlayConfig) {
-//        context.dataStore.edit { prefs ->
-//            prefs[floatPreferencesKey("${config.packageName}_horizontal_offset")] = config.hOffset
-//            prefs[floatPreferencesKey("${config.packageName}_vertical_offset")] = config.vOffset
-//            prefs[intPreferencesKey("${config.packageName}_dot_size")] = config.dotSize
-//            prefs[intPreferencesKey("${config.packageName}_line_width")] = config.lineWidth
-//        }
-//    }
-//
     fun loadConfigFlowForApp(pkg: String): Flow<OverlayConfig> {
-        Log.d("SettingsRepository", "Loading config flow for package: $pkg")
+        Log.d("PB.SettingsRepository", "Loading config flow for package: $pkg")
 
         return context.dataStore.data.map { prefs ->
             fun float(key: String) =
@@ -37,10 +28,10 @@ class SettingsRepository(private val context: Context) {
 
             OverlayConfig(
 //                packageName = pkg,
-                hOffset = float("${pkg}_horizontal_offset"),
-                vOffset = float("${pkg}_vertical_offset"),
-                dotSize = int("${pkg}_dot_size"),
-                lineWidth = int("${pkg}_line_width")
+                hOffset = float("o_${pkg}_h"),
+                vOffset = float("o_${pkg}_v"),
+                dotSize = int("o_${pkg}_s"),
+                lineWidth = int("o_${pkg}_w")
             )
         }
     }
@@ -52,25 +43,25 @@ class SettingsRepository(private val context: Context) {
     }
 
     suspend fun <T> saveSingleConfig(key: Key<T>, value: T) {
-        Log.d("SettingsRepository", "Saving $value to ${key.name}")
+        Log.d("PB.SettingsRepository", "Saving $value to ${key.name}")
         context.dataStore.edit {
             it[key] = value
         }
     }
 
     suspend fun <T> removeSingleConfig(key: Key<T>) {
-        Log.d("SettingsRepository", "Removing ${key.name}")
+        Log.d("PB.SettingsRepository", "Removing ${key.name}")
         context.dataStore.edit {
             it.remove(key)
         }
     }
 
-    fun hasConfigOfPackage(packageName: String): Boolean {
+    fun hasOverlayConfigOfPackage(packageName: String): Boolean {
         return runBlocking { context.dataStore.data.map {
-            it.contains(floatPreferencesKey("${packageName}_horizontal_offset")) ||
-            it.contains(floatPreferencesKey("${packageName}_vertical_offset")) ||
-            it.contains(intPreferencesKey("${packageName}_dot_size")) ||
-            it.contains(intPreferencesKey("${packageName}_line_width"))
+            it.contains(floatPreferencesKey("o_${packageName}_h")) ||
+            it.contains(floatPreferencesKey("o_${packageName}_v")) ||
+            it.contains(intPreferencesKey("o_${packageName}_s")) ||
+            it.contains(intPreferencesKey("o_${packageName}_w"))
         }.first() }
     }
 }

@@ -21,6 +21,7 @@ import androidx.core.app.NotificationCompat
 import dev.ujhhgtg.pandorasbox.R
 import dev.ujhhgtg.pandorasbox.receivers.StopServiceReceiver
 import dev.ujhhgtg.pandorasbox.utils.PermissionManager
+import dev.ujhhgtg.pandorasbox.utils.ServiceLocator
 import dev.ujhhgtg.pandorasbox.utils.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -45,6 +46,8 @@ class OverlayService : Service() {
     companion object {
         @Volatile
         var isRunning: MutableState<Boolean> = mutableStateOf(false)
+        const val TAG: String = "PB.OverlayService"
+        const val ID: Int = 1
     }
 
     override fun onCreate() {
@@ -53,6 +56,7 @@ class OverlayService : Service() {
         if (!PermissionManager.checkNotifications(this) ||
             !PermissionManager.checkOverlay(this) ||
             !PermissionManager.checkUsageStats(this)) {
+            Log.d(TAG, "required permissions are not granted")
             throw IllegalAccessException("required permissions are not granted")
         }
 
@@ -60,6 +64,7 @@ class OverlayService : Service() {
         startForegroundServiceWithNotification()
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         settings = SettingsRepository(this)
+        ServiceLocator.register(this)
 
         val flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                 WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS or
@@ -119,7 +124,7 @@ class OverlayService : Service() {
                     continue
 
                 // 1. if config doesn't exist, use default
-                if (!settings.hasConfigOfPackage(pkg)) {
+                if (!settings.hasOverlayConfigOfPackage(pkg)) {
                     pkg = "default"
                 }
 
@@ -135,7 +140,7 @@ class OverlayService : Service() {
     }
 
     private fun subscribeToConfig(packageName: String) {
-        Log.d("OverlayService", "Subscribing to config for package: $packageName")
+        Log.d(TAG, "Subscribing to config for package: $packageName")
         configJob?.cancel()
         configJob = scope.launch {
             settings.loadConfigFlowForApp(packageName).collect { conf ->
@@ -169,7 +174,7 @@ class OverlayService : Service() {
     }
 
     private fun applyConfig(hOffset: Float? = null, vOffset: Float? = null, dotSize: Int? = null, lineWidth: Int? = null) {
-        Log.d("OverlayService", "Applying config $hOffset $vOffset $dotSize $lineWidth")
+        Log.d(TAG, "Applying config $hOffset $vOffset $dotSize $lineWidth")
 
         for (view in arrayOf(dot, hLine, vLine)) {
             if (hOffset != null)
@@ -203,7 +208,7 @@ class OverlayService : Service() {
         manager.createNotificationChannel(channel)
 
         val stopIntent = Intent(this, StopServiceReceiver::class.java)
-        stopIntent.putExtra("service", 0)
+        stopIntent.putExtra("service", ID)
         val stopPendingIntent = PendingIntent.getBroadcast(
             this,
             0,
@@ -221,7 +226,7 @@ class OverlayService : Service() {
             .setOngoing(true)
             .build()
 
-        startForeground(1, notification)
+        startForeground(ID, notification)
     }
 
     override fun onDestroy() {

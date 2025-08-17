@@ -32,6 +32,7 @@ import dev.ujhhgtg.pandorasbox.utils.NumberOperations.Companion.divide
 import dev.ujhhgtg.pandorasbox.utils.NumberOperations.Companion.subtract
 import dev.ujhhgtg.pandorasbox.utils.NumberOperations.Companion.toGeneric
 
+@Suppress("UNCHECKED_CAST")
 @Composable
 fun <T> NumberAdjuster(
     label: String,

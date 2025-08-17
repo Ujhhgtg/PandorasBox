@@ -24,8 +24,6 @@ android {
         versionCode = 1
         versionName = "1.0"
 
-//        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
         ndk {
             abiFilters.clear()
             abiFilters.addAll(listOf("arm64-v8a", "x86_64"))
@@ -45,9 +43,6 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-//    kotlinOptions {
-//        jvmTarget = "17"
-//    }
     buildFeatures {
         compose = true
         buildConfig = true
@@ -59,6 +54,9 @@ dependencies {
     // Jetpack Compose
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle)
     implementation(libs.androidx.activity.compose)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.ui)
@@ -70,14 +68,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.navigation.runtime.android)
     debugImplementation(libs.androidx.ui.tooling)
-//    debugImplementation(libs.androidx.ui.test.manifest)
-
-    // Tests
-//    testImplementation(libs.junit)
-//    androidTestImplementation(libs.androidx.junit)
-//    androidTestImplementation(libs.androidx.espresso.core)
-//    androidTestImplementation(platform(libs.androidx.compose.bom))
-//    androidTestImplementation(libs.androidx.ui.test.junit4)
+    implementation(libs.androidx.biometric)
 
     // YukiHookAPI
     implementation(libs.yukihookapi.api)
@@ -105,4 +96,23 @@ dependencies {
     implementation(libs.litert.metadata)
     implementation(libs.litert.support)
     implementation(libs.litert.gpu)
+
+    // Kotlin Reflection
+    implementation(libs.kotlin.reflect)
+
+    // WebSocket
+    implementation(libs.java.websocket)
+
+    // UPnP & DLNA
+//    implementation(libs.cling.core)
+//    implementation(libs.cling.support)
+    implementation(libs.jupnp)
+    implementation(libs.jupnp.android)
+    implementation(libs.nanoHttpd)
+    implementation(libs.javax.servlet.api)
+    implementation(libs.jetty.server)
+    implementation(libs.jetty.client)
+    implementation(libs.jetty.servlet)
+    implementation(libs.slf4j.api)
+    implementation(libs.slf4j.android)
 }

@@ -1,24 +1,29 @@
 [versions]
 agp = "8.12.0"
 camera = "1.4.2"
+javaWebsocket = "1.6.0"
+javaxServlet = "4.0.1"
+jetty = "9.4.58.v20250814" # do not upgrade to higher versions, because javax.* is renamed to jakarta.* in later versions, but jupnp still uses the old namespace
 shizuku = "13.1.5"
 poseDetectionAccurate = "18.0.0-beta5"
-xposedapi = "82"
+slf4jAndroid = "1.7.36"
+slf4jApi = "2.0.17"
+xposedApi = "82"
 kavaref = "1.0.1"
 yukihookapi = "1.3.0"
 datastorePreferences = "1.1.7"
-kotlin = "2.2.0"
-coreKtx = "1.16.0"
-#junit = "4.13.2"
-#junitVersion = "1.2.1"
-#espressoCore = "3.6.1"
-lifecycleRuntimeKtx = "2.9.2"
+kotlin = "2.2.10"
+coreKtx = "1.17.0"
+lifecycle = "2.9.2"
 activityCompose = "1.10.1"
-composeBom = "2025.07.00"
+biometric = "1.4.0-alpha04"
+composeBom = "2025.08.00"
 appcompat = "1.7.1"
-ksp = "2.2.0-2.0.2"
+ksp = "2.2.10-2.0.2"
 navigationCompose = "2.9.3"
 litert = "1.4.0"
+jupnp = "3.0.3"
+nanoHttpd = "2.3.1"
 
 [libraries]
 androidx-camera-extensions = { module = "androidx.camera:camera-extensions", version.ref = "camera" }
@@ -28,11 +33,23 @@ androidx-camera-camera2 = { module = "androidx.camera:camera-camera2", version.r
 androidx-camera-core = { module = "androidx.camera:camera-core", version.ref = "camera" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
+androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycle" }
+androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
+androidx-lifecycle = { module = "androidx.lifecycle:lifecycle-common", version.ref = "lifecycle" }
+androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
+java-websocket = { module = "org.java-websocket:Java-WebSocket", version.ref = "javaWebsocket" }
+javax-servlet-api = { module = "javax.servlet:javax.servlet-api", version.ref = "javaxServlet" }
+jetty-client = { module = "org.eclipse.jetty:jetty-client", version.ref = "jetty" }
+jetty-server = { module = "org.eclipse.jetty:jetty-server", version.ref = "jetty" }
+jetty-servlet = { module = "org.eclipse.jetty:jetty-servlet", version.ref = "jetty" }
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
 litert = { module = "com.google.ai.edge.litert:litert", version.ref = "litert" }
 litert-metadata = { module = "com.google.ai.edge.litert:litert-metadata", version.ref = "litert" }
 litert-support = { module = "com.google.ai.edge.litert:litert-support", version.ref = "litert" }
 litert-gpu = { module = "com.google.ai.edge.litert:litert-gpu", version.ref = "litert" }
-xposed-api = { module = "de.robv.android.xposed:api", version.ref = "xposedapi" }
+slf4j-android = { module = "org.slf4j:slf4j-android", version.ref = "slf4jAndroid" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4jApi" }
+xposed-api = { module = "de.robv.android.xposed:api", version.ref = "xposedApi" }
 kavaref-core = { module = "com.highcapable.kavaref:kavaref-core", version.ref = "kavaref" }
 kavaref-extension = { module = "com.highcapable.kavaref:kavaref-extension", version.ref = "kavaref" }
 pose-detection-accurate = { module = "com.google.mlkit:pose-detection-accurate", version.ref = "poseDetectionAccurate" }
@@ -40,22 +57,20 @@ shizuku-api = { module = "dev.rikka.shizuku:api", version.ref = "shizuku" }
 shizuku-provider = { module = "dev.rikka.shizuku:provider", version.ref = "shizuku" }
 yukihookapi-ksp-xposed = { module = "com.highcapable.yukihookapi:ksp-xposed", version.ref = "yukihookapi" }
 yukihookapi-api = { module = "com.highcapable.yukihookapi:api", version.ref = "yukihookapi" }
-#junit = { group = "junit", name = "junit", version.ref = "junit" }
-#androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
-#androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
-androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycle" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
 androidx-ui = { group = "androidx.compose.ui", name = "ui" }
 androidx-ui-graphics = { group = "androidx.compose.ui", name = "ui-graphics" }
 androidx-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling" }
 androidx-ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
-#androidx-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
-#androidx-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 androidx-navigation-compose = { group = "androidx.navigation", name = "navigation-compose", version.ref = "navigationCompose" }
 androidx-navigation-runtime-android = { group = "androidx.navigation", name = "navigation-runtime-android", version.ref = "navigationCompose" }
+jupnp = { group = "org.jupnp", name = "org.jupnp", version.ref = "jupnp" }
+jupnp-android = { group = "org.jupnp", name = "org.jupnp.android", version.ref = "jupnp" }
+nanoHttpd = { group = "org.nanohttpd", name = "nanohttpd", version.ref = "nanoHttpd" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -4,19 +4,29 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-
-    <permission android:label="Receive Xposed Broadcast"
-        android:name="dev.ujhhgtg.pandorasbox.permission.RECEIVE_XPOSED_BROADCAST" />
-
-    <uses-permission android:name="dev.ujhhgtg.pandorasbox.permission.RECEIVE_XPOSED_BROADCAST" />
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
+        tools:ignore="ScopedStorage" />
 
     <uses-feature android:name="android.hardware.camera.any" android:required="false" />
+
+    <permission android:label="Receive Xposed Broadcast"
+        android:name="dev.ujhhgtg.pandorasbox.permission.RECEIVE_XPOSED_BROADCAST" />
+    <uses-permission android:name="dev.ujhhgtg.pandorasbox.permission.RECEIVE_XPOSED_BROADCAST" />
+
 
     <application
         android:allowBackup="true"
@@ -26,23 +36,52 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.AimAssistant"
+        android:theme="@style/Theme.PandorasBox"
         android:enableOnBackInvokedCallback="true">
 
         <activity
-            android:name=".ui.MainActivity"
+            android:name=".ui.activities.MainActivity"
             android:exported="true"
-            android:theme="@style/Theme.AimAssistant">
+            android:theme="@style/Theme.PandorasBox">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="pb" />
             </intent-filter>
         </activity>
 
+        <activity android:name=".ui.activities.InputMapperEditorActivity"
+            android:theme="@style/Theme.PandorasBox.FullScreen"
+            android:exported="false" />
+
         <service android:name=".services.OverlayService"
             android:exported="false"
+            android:label="@string/overlay"
             android:foregroundServiceType="specialUse"/>
+
+        <service android:name=".services.AimBotService"
+            android:exported="false"
+            android:label="@string/aim_bot"
+            android:foregroundServiceType="specialUse"/>
+
+        <service android:name=".services.InputMapperService"
+            android:exported="false"
+            android:label="@string/input_mapper"
+            android:foregroundServiceType="specialUse">
+        </service>
+
+        <service android:name=".services.DlnaServerService"
+            android:exported="false"
+            android:label="@string/dlna"
+            android:foregroundServiceType="dataSync|connectedDevice">
+        </service>
 
         <receiver android:name=".receivers.ScreenRotationReceiver" android:exported="true">
             <intent-filter>
@@ -60,6 +99,16 @@
             android:exported="true"
             android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
 
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
 <!--        <receiver android:name=".receivers.ForegroundAppChangeReceiver"-->
 <!--            android:exported="true"-->
 <!--            android:permission="dev.ujhhgtg.pandorasbox.permission.RECEIVE_XPOSED_BROADCAST">-->
@@ -74,7 +123,7 @@
 
         <meta-data
             android:name="nonprescription"
-            android:value="Aim Assistant's helper Xposed module. Provides foreground application change broadcast." />
+            android:value="Pandora's Box's helper Xposed module. Provides foreground application change broadcast." />
 
         <meta-data
             android:name="interconversion"
