@@ -1,10 +1,8 @@
-package dev.ujhhgtg.pandorasbox.ui.composables
+package dev.ujhhgtg.pandorasbox.ui.composables.dialogs
 
 import android.content.Intent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -12,15 +10,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -30,14 +28,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,7 +42,8 @@ import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import dev.ujhhgtg.pandorasbox.R
 import dev.ujhhgtg.pandorasbox.models.AppInfo
-import dev.ujhhgtg.pandorasbox.utils.SettingsRepository
+import dev.ujhhgtg.pandorasbox.ui.composables.LoadingIndicator
+import dev.ujhhgtg.pandorasbox.utils.settings.PrefsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -54,23 +51,21 @@ import kotlinx.coroutines.withContext
 
 @Composable
 fun PackageChooserDialog(
-    settings: SettingsRepository,
+    settings: PrefsRepository,
     onDismiss: () -> Unit,
     onSelect: (String) -> Unit
 ) {
-    val context = LocalContext.current
+    val ctx = LocalContext.current
     var isLoading by remember { mutableStateOf(true) }
     var apps by remember { mutableStateOf(listOf<AppInfo>()) }
     var searchQuery by remember { mutableStateOf("") }
     var pkgToClearConfig by remember { mutableStateOf("") }
     var showClearConfigDialog by remember { mutableStateOf(false) }
-    val coroutineScope by remember { mutableStateOf(CoroutineScope(Dispatchers.Main)) }
-    val interactionSource = remember { MutableInteractionSource() }
-
+    val scope by remember { mutableStateOf(CoroutineScope(Dispatchers.Main)) }
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
-            val pm = context.packageManager
+            val pm = ctx.packageManager
             val intent = Intent(Intent.ACTION_MAIN, null).apply {
                 addCategory(Intent.CATEGORY_LAUNCHER)
             }
@@ -79,7 +74,8 @@ fun PackageChooserDialog(
                 val label = it.loadLabel(pm).toString()
                 val icon = it.loadIcon(pm)
                 val packageName = it.activityInfo.packageName
-                AppInfo(label, packageName, icon)
+                val activity = it.activityInfo.targetActivity
+                AppInfo(label, packageName, activity, icon)
             }.sortedBy { it.label.lowercase() }
             apps = loadedApps
             isLoading = false
@@ -91,15 +87,13 @@ fun PackageChooserDialog(
         title = { Text("Select App") },
         text = {
             if (isLoading) {
-                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
+                LoadingIndicator()
             } else {
                 Column {
                     OutlinedTextField(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
-                        label = { Text(stringResource(R.string.search)) },
+                        label = { dev.ujhhgtg.pandorasbox.ui.composables.Text(R.string.search) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 8.dp),
@@ -115,22 +109,19 @@ fun PackageChooserDialog(
                     LazyColumn(modifier =
                         Modifier
                             .heightIn(max = 500.dp)
-                            .clip(RoundedCornerShape(16.dp))
+                            .clip(MaterialTheme.shapes.large)
                     ) {
                         item {
                             ListItem(
-                                headlineContent = { Text("Default") },
-                                leadingContent = { Icon(imageVector = Icons.Default.Settings, contentDescription = "default") },
+                                headlineContent = { dev.ujhhgtg.pandorasbox.ui.composables.Text(R.string.default_) },
+                                leadingContent = { Icon(Icons.Default.Settings, null) },
                                 trailingContent = {
                                     if (settings.hasOverlayConfigOfPackage("default")) {
                                         Icon(
                                             imageVector = Icons.Default.Check,
                                             contentDescription = "has config",
                                             tint = Color.Green,
-                                            modifier = Modifier.clickable(
-                                                interactionSource = interactionSource,
-                                                indication = null
-                                            ) {
+                                            modifier = Modifier.clip(CircleShape).clickable {
                                                 pkgToClearConfig = "default"
                                                 showClearConfigDialog = true
                                             }
@@ -169,10 +160,7 @@ fun PackageChooserDialog(
                                             imageVector = Icons.Default.Check,
                                             contentDescription = "has config",
                                             tint = Color.Green,
-                                            modifier = Modifier.clickable(
-                                                interactionSource = interactionSource,
-                                                indication = null
-                                            ) {
+                                            modifier = Modifier.clip(CircleShape).clickable {
                                                 pkgToClearConfig = app.packageName
                                                 showClearConfigDialog = true
                                             }
@@ -208,7 +196,7 @@ fun PackageChooserDialog(
             confirmButton = {
                 TextButton(onClick = { showClearConfigDialog = false } ) { Text("Cancel") }
                 TextButton(onClick = {
-                    coroutineScope.launch {
+                    scope.launch {
                         settings.removeSingleConfig(floatPreferencesKey("o_${pkgToClearConfig}_h"))
                         settings.removeSingleConfig(floatPreferencesKey("o_${pkgToClearConfig}_v"))
                         settings.removeSingleConfig(intPreferencesKey("o_${pkgToClearConfig}_s"))

@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+option java_package = "dev.ujhhgtg.pandorasbox";
+option java_multiple_files = true;
+
+message HistoryEntry {
+  string url = 1;
+  string title = 2;
+  int64 timestamp = 3; // epoch millis
+}
+
+message BrowserHistory {
+  repeated HistoryEntry entries = 1;
+}

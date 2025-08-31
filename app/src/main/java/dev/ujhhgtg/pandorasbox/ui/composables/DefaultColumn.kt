@@ -16,12 +16,16 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DefaultColumn(scrollBehavior: TopAppBarScrollBehavior, content: @Composable () -> Unit) {
+fun DefaultColumn(scrollBehavior: TopAppBarScrollBehavior?, content: @Composable () -> Unit) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .nestedScroll(scrollBehavior.nestedScrollConnection)
-            .verticalScroll(rememberScrollState())
+            .apply {
+                if (scrollBehavior != null) {
+                    nestedScroll(scrollBehavior.nestedScrollConnection)
+                    verticalScroll(rememberScrollState())
+                }
+            }
             .padding(16.dp),
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally

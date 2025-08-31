@@ -10,7 +10,7 @@ class ScreenRotationReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         if (intent?.action != Intent.ACTION_CONFIGURATION_CHANGED)
             return
-        if (!OverlayService.Companion.isRunning.value)
+        if (!OverlayService.isRunning.value)
             return
 
         val serviceIntent = Intent(context, OverlayService::class.java)

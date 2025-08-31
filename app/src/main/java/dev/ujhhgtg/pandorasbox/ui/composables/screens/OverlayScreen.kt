@@ -1,13 +1,11 @@
 package dev.ujhhgtg.pandorasbox.ui.composables.screens
 
-import android.app.Activity
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -15,7 +13,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -26,23 +23,24 @@ import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import dev.ujhhgtg.pandorasbox.R
 import dev.ujhhgtg.pandorasbox.services.OverlayService
+import dev.ujhhgtg.pandorasbox.ui.activities.LocalActivityContext
+import dev.ujhhgtg.pandorasbox.ui.activities.LocalScrollBehavior
+import dev.ujhhgtg.pandorasbox.ui.activities.LocalPrefsRepository
 import dev.ujhhgtg.pandorasbox.ui.composables.ButtonSpacer
 import dev.ujhhgtg.pandorasbox.ui.composables.DefaultColumn
 import dev.ujhhgtg.pandorasbox.ui.composables.NumberAdjuster
 import dev.ujhhgtg.pandorasbox.ui.composables.OffsetAdjuster
-import dev.ujhhgtg.pandorasbox.ui.composables.PackageChooserDialog
+import dev.ujhhgtg.pandorasbox.ui.composables.dialogs.PackageChooserDialog
+import dev.ujhhgtg.pandorasbox.ui.composables.Text
 import dev.ujhhgtg.pandorasbox.utils.PermissionManager
-import dev.ujhhgtg.pandorasbox.utils.SettingsRepository
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OverlayScreen(
-    settings: SettingsRepository,
-    scrollBehavior: TopAppBarScrollBehavior,
-    activity: Activity,
-    toggleService: () -> Unit
-) {
-    var serviceStarted by remember { OverlayService.isRunning }
+fun OverlayScreen(toggleService: () -> Unit) {
+    val activity = LocalActivityContext.current
+    val scrollBehavior = LocalScrollBehavior.current
+    val settings = LocalPrefsRepository.current
+
     var selectedPackage by rememberSaveable { mutableStateOf("default") }
     var showPackageDialog by rememberSaveable { mutableStateOf(false) }
 
@@ -158,20 +156,14 @@ fun OverlayScreen(
 
             toggleService()
         }) {
-            if (!serviceStarted) {
-                Icon(
-                    painter = painterResource(R.drawable.play_arrow_24px),
-                    contentDescription = "show overlay",
-                )
+            if (!OverlayService.isRunning.value) {
+                Icon(painterResource(R.drawable.play_arrow_24px), null)
                 ButtonSpacer()
-                Text(stringResource(R.string.show_overlay))
+                Text(R.string.show_overlay)
             } else {
-                Icon(
-                    painter = painterResource(R.drawable.pause_24px),
-                    contentDescription = "hide overlay",
-                )
+                Icon(painterResource(R.drawable.pause_24px), null)
                 ButtonSpacer()
-                Text(stringResource(R.string.hide_overlay))
+                Text(R.string.hide_overlay)
             }
         }
     }

@@ -22,7 +22,7 @@ import dev.ujhhgtg.pandorasbox.R
 import dev.ujhhgtg.pandorasbox.receivers.StopServiceReceiver
 import dev.ujhhgtg.pandorasbox.utils.PermissionManager
 import dev.ujhhgtg.pandorasbox.utils.ServiceLocator
-import dev.ujhhgtg.pandorasbox.utils.SettingsRepository
+import dev.ujhhgtg.pandorasbox.utils.settings.PrefsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -33,7 +33,7 @@ import kotlinx.coroutines.launch
 
 class OverlayService : Service() {
     private lateinit var windowManager: WindowManager
-    private lateinit var settings: SettingsRepository
+    private lateinit var settings: PrefsRepository
 
     private lateinit var dot: View
     private lateinit var vLine: View
@@ -63,7 +63,7 @@ class OverlayService : Service() {
         isRunning.value = true
         startForegroundServiceWithNotification()
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
-        settings = SettingsRepository(this)
+        settings = PrefsRepository(this)
         ServiceLocator.register(this)
 
         val flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or

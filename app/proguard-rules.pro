@@ -19,3 +19,6 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# INCOMPLETE, DO NOT USE
+-keepnames class dev.ujhhgtg.pandorasbox.services.* { *; }

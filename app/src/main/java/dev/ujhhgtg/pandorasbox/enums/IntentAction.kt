@@ -1,6 +1,6 @@
 package dev.ujhhgtg.pandorasbox.enums
 
-enum class FileOpenMode {
+enum class IntentAction {
     VIEW,
     SEND,
     SEND_MULTIPLE

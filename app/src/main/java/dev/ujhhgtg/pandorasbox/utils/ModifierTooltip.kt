@@ -1,6 +1,7 @@
 package dev.ujhhgtg.pandorasbox.utils
 
 import android.annotation.SuppressLint
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.PlainTooltip
@@ -11,6 +12,7 @@ import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
+import androidx.compose.ui.res.stringResource
 
 @SuppressLint("SuspiciousModifierThen")
 @Composable
@@ -31,3 +33,8 @@ fun Modifier.tooltip(
     }
     Modifier
 })
+
+@Composable
+fun Modifier.tooltip(
+    @StringRes id: Int
+): Modifier = this.tooltip(stringResource(id))

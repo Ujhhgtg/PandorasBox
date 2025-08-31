@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .space {
+            height: 40px; /* top spacing */
+        }
+
+        .app-logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+        }
+
+        .search-bar {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            margin-bottom: 30px;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 10px 15px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 8px 0 0 8px;
+        }
+
+        .search-bar button {
+            padding: 10px 15px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-left: none;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+        }
+
+        .bookmarks {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .bookmark-icons {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 10px;
+        }
+
+        .bookmark-icons img {
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+        }
+
+        .bookmark-texts {
+            display: flex;
+            gap: 30px;
+        }
+
+        .bookmark-texts div {
+            text-align: center;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+<div class="space"></div>
+<img src="file:///android_asset/logo.png" alt="App Logo" class="app-logo">
+
+<div class="search-bar">
+    <input type="text" placeholder="Search or enter URL" id="searchInput">
+    <button onclick="search()">Go</button>
+</div>
+
+<div class="bookmarks">
+    <div class="bookmark-icons">
+        <img src="file:///android_asset/bookmark1.png" onclick="openBookmark('https://example1.com')">
+        <img src="file:///android_asset/bookmark2.png" onclick="openBookmark('https://example2.com')">
+        <img src="file:///android_asset/bookmark3.png" onclick="openBookmark('https://example3.com')">
+    </div>
+    <div class="bookmark-texts">
+        <div onclick="openBookmark('https://example1.com')">Example 1</div>
+        <div onclick="openBookmark('https://example2.com')">Example 2</div>
+        <div onclick="openBookmark('https://example3.com')">Example 3</div>
+    </div>
+</div>
+
+<script>
+    function search() {
+        const url = document.getElementById('searchInput').value;
+        if (url) {
+            window.location.href = url;
+        }
+    }
+
+    function openBookmark(url) {
+        window.location.href = url;
+    }
+</script>
+</body>
+</html>

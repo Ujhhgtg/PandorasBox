@@ -11,6 +11,7 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.devtools.ksp)
+    alias(libs.plugins.google.protobuf)
 }
 
 android {
@@ -33,6 +34,8 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
+//            isMinifyEnabled = true
+//            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -46,7 +49,7 @@ android {
     buildFeatures {
         compose = true
         buildConfig = true
-        mlModelBinding = true
+//        mlModelBinding = true
     }
 }
 
@@ -69,16 +72,17 @@ dependencies {
     implementation(libs.androidx.navigation.runtime.android)
     debugImplementation(libs.androidx.ui.tooling)
     implementation(libs.androidx.biometric)
+    implementation(libs.androidx.compose.foundation)
 
     // YukiHookAPI
-    implementation(libs.yukihookapi.api)
-    implementation(libs.kavaref.core)
-    implementation(libs.kavaref.extension)
-    compileOnly(libs.xposed.api)
-    ksp(libs.yukihookapi.ksp.xposed)
+//    implementation(libs.yukihookapi.api)
+//    implementation(libs.kavaref.core)
+//    implementation(libs.kavaref.extension)
+//    compileOnly(libs.xposed.api)
+//    ksp(libs.yukihookapi.ksp.xposed)
 
     // ML Kit
-    implementation(libs.pose.detection.accurate)
+//    implementation(libs.pose.detection.accurate)
 
     // Shizuku
     implementation(libs.shizuku.api)
@@ -92,10 +96,10 @@ dependencies {
     implementation(libs.androidx.camera.extensions)
 
     // LiteRT
-    implementation(libs.litert)
-    implementation(libs.litert.metadata)
-    implementation(libs.litert.support)
-    implementation(libs.litert.gpu)
+//    implementation(libs.litert)
+//    implementation(libs.litert.metadata)
+//    implementation(libs.litert.support)
+//    implementation(libs.litert.gpu)
 
     // Kotlin Reflection
     implementation(libs.kotlin.reflect)
@@ -115,4 +119,45 @@ dependencies {
     implementation(libs.jetty.servlet)
     implementation(libs.slf4j.api)
     implementation(libs.slf4j.android)
+
+    // ProtoBuf
+    implementation(libs.androidx.datastore.core)
+    implementation(libs.protobuf.javalite)
+
+    // ExoPlayer
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.exoplayer.dash)
+    implementation(libs.androidx.media3.ui)
+    implementation(libs.androidx.media3.ui.compose)
+}
+
+//protobuf {
+//    protoc {
+//        artifact = "com.google.protobuf:protoc:3.14.0"
+//    }
+//
+//    generateProtoTasks {
+//        all().each { task ->
+//            task.builtins {
+//                java {
+//                    option 'lite'
+//                }
+//            }
+//        }
+//    }
+//}
+
+protobuf {
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.14.0"
+    }
+    generateProtoTasks {
+        all().forEach { task ->
+            task.builtins {
+                create("java") {
+                    option("lite")
+                }
+            }
+        }
+    }
 }

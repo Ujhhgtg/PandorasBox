@@ -6,7 +6,7 @@ import android.content.Intent
 
 class ForegroundAppChangeReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        val packageName = intent.getStringExtra("packageName")
+        intent.getStringExtra("packageName")
         // TODO: Handle app change
     }
 }

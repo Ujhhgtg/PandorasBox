@@ -5,15 +5,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -22,9 +18,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import dev.ujhhgtg.pandorasbox.R
+import dev.ujhhgtg.pandorasbox.ui.composables.dialogs.InputDialog
 import dev.ujhhgtg.pandorasbox.utils.NumberOperations.Companion.add
 import dev.ujhhgtg.pandorasbox.utils.NumberOperations.Companion.coerceIn
 import dev.ujhhgtg.pandorasbox.utils.NumberOperations.Companion.compareTo
@@ -119,46 +115,21 @@ where T : Number
             )
         }
 
-
         if (showDialog) {
-            AlertDialog(
+            InputDialog(
+                title = { Text(R.string.edit_value) },
+                value = value,
                 onDismissRequest = { showDialog = false },
-                title = { Text("Enter value") },
-                text = {
-                    Column {
-                        OutlinedTextField(
-                            value = textFieldValue,
-                            onValueChange = { textFieldValue = it },
-                            label = { Text("Value ($minValue to $maxValue)") },
-                            singleLine = true,
-                            keyboardOptions = KeyboardOptions(
-                                keyboardType = KeyboardType.Number
-                            ),
-                            isError = errorMessage.value != null
-                        )
-                        errorMessage.value?.let {
-                            Text(text = it, color = MaterialTheme.colorScheme.error)
-                        }
+                onValidate = { input ->
+                    if (input == null || input < minValue || input > maxValue) {
+                        return@InputDialog "Enter a number between $minValue and $maxValue!"
+                    } else {
+                        return@InputDialog null
                     }
                 },
-                confirmButton = {
-                    TextButton(onClick = {
-                        val input = textFieldValue.text.toFloatOrNull()
-                        if (input == null || input < minValue || input > maxValue) {
-                            errorMessage.value = "Please enter a number between $minValue and $maxValue"
-                        } else {
-                            onChange(input as T)
-                            showDialog = false
-                        }
-                    }) {
-                        Text("OK")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDialog = false }) {
-                        Text("Cancel")
-                    }
-                }
+                textFieldLabel = { Text("Value ($minValue to $maxValue)") },
+                onValueChange = { onChange(it as T) },
+                onParseValue = { it.toFloatOrNull() },
             )
         }
     }

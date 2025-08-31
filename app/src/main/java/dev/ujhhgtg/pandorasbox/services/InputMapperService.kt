@@ -23,7 +23,7 @@ import dev.ujhhgtg.pandorasbox.ui.composables.screens.InputMapperEditorScreen
 import dev.ujhhgtg.pandorasbox.ui.theme.AppTheme
 import dev.ujhhgtg.pandorasbox.utils.PermissionManager
 import dev.ujhhgtg.pandorasbox.utils.ServiceLocator
-import dev.ujhhgtg.pandorasbox.utils.SettingsRepository
+import dev.ujhhgtg.pandorasbox.utils.settings.PrefsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -34,7 +34,7 @@ import org.json.JSONObject
 import java.net.URI
 
 class InputMapperService : Service(), LifecycleOwner {
-    private lateinit var settings: SettingsRepository
+    private lateinit var settings: PrefsRepository
     private lateinit var webSocketClient: WebSocketClient
     private lateinit var windowManager: WindowManager
     private lateinit var composeView: ComposeView
@@ -58,7 +58,7 @@ class InputMapperService : Service(), LifecycleOwner {
         val serverUri = intent?.getStringExtra("uri") ?: return START_NOT_STICKY
         isRunning.value = true
         startForegroundServiceWithNotification()
-        settings = SettingsRepository(this)
+        settings = PrefsRepository(this)
         windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
         lifecycleRegistry = LifecycleRegistry(this)
         lifecycleRegistry.currentState = Lifecycle.State.CREATED

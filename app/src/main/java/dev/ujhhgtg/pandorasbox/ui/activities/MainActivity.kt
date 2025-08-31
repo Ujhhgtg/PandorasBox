@@ -6,60 +6,104 @@ import android.content.Intent
 import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
 import android.graphics.drawable.Icon
-import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.webkit.CookieManager
+import android.webkit.GeolocationPermissions
+import android.webkit.WebStorage
+import android.webkit.WebView
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import androidx.compose.material3.Snackbar
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
 import dev.ujhhgtg.pandorasbox.R
+import dev.ujhhgtg.pandorasbox.models.DEFAULT_HOME_URL
 import dev.ujhhgtg.pandorasbox.models.Module
+import dev.ujhhgtg.pandorasbox.models.SettingItem
 import dev.ujhhgtg.pandorasbox.services.DlnaServerService
+import dev.ujhhgtg.pandorasbox.services.DownloadService
 import dev.ujhhgtg.pandorasbox.services.InputMapperService
 import dev.ujhhgtg.pandorasbox.services.OverlayService
+import dev.ujhhgtg.pandorasbox.ui.composables.Text
 import dev.ujhhgtg.pandorasbox.ui.composables.screens.AimBotScreen
+import dev.ujhhgtg.pandorasbox.ui.composables.screens.BrowserScreen
 import dev.ujhhgtg.pandorasbox.ui.composables.screens.DlnaServerScreen
 import dev.ujhhgtg.pandorasbox.ui.composables.screens.FileManagerScreen
 import dev.ujhhgtg.pandorasbox.ui.composables.screens.InputMapperScreen
 import dev.ujhhgtg.pandorasbox.ui.composables.screens.ModulesScreen
 import dev.ujhhgtg.pandorasbox.ui.composables.screens.OverlayScreen
 import dev.ujhhgtg.pandorasbox.ui.composables.screens.PlaygroundScreen
-import dev.ujhhgtg.pandorasbox.ui.composables.screens.SettingsScreen
+import dev.ujhhgtg.pandorasbox.ui.composables.settingsGraph
 import dev.ujhhgtg.pandorasbox.ui.theme.AppTheme
 import dev.ujhhgtg.pandorasbox.utils.ReflectUtils
-import dev.ujhhgtg.pandorasbox.utils.ServiceLocator
-import dev.ujhhgtg.pandorasbox.utils.SettingsRepository
+import dev.ujhhgtg.pandorasbox.utils.settings.HistoryRepository
+import dev.ujhhgtg.pandorasbox.utils.settings.PrefsRepository
+import dev.ujhhgtg.pandorasbox.utils.settings.PrefsRepository.Companion.bKey
+import dev.ujhhgtg.pandorasbox.utils.settings.PrefsRepository.Companion.iKey
+import dev.ujhhgtg.pandorasbox.utils.tooltip
+
+val LocalTopBarSetter = compositionLocalOf<((@Composable () -> Unit)?) -> Unit> { {} }
+val LocalBottomBarSetter = compositionLocalOf<((@Composable () -> Unit)?) -> Unit> { {} }
+val LocalNavController = compositionLocalOf<NavController> { error("Not provided") }
+val LocalSnackbarHostState = compositionLocalOf<SnackbarHostState> { error("Not provided") }
+val LocalActivityContext = compositionLocalOf<ComponentActivity> { error("Not provided") }
+@OptIn(ExperimentalMaterial3Api::class)
+val LocalScrollBehavior = compositionLocalOf<TopAppBarScrollBehavior> { error("Not provided") }
+val LocalPrefsRepository = compositionLocalOf<PrefsRepository> { error("Not provided") }
+val LocalHistoryRepository = compositionLocalOf<HistoryRepository> { error("Not provided") }
 
 class MainActivity : ComponentActivity() {
     companion object {
@@ -72,60 +116,190 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            AppTheme {
-                AppContent()
-            }
+            AppContent()
         }
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     fun AppContent() {
-        val settings = remember { SettingsRepository(this) }
+        val prefs = remember { PrefsRepository(this) }
+        val history = remember { HistoryRepository(this) }
         val navController = rememberNavController()
         val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
+        val topBarState = remember { mutableStateOf<(@Composable () -> Unit)?>(null) }
+        val bottomBarState = remember { mutableStateOf<(@Composable () -> Unit)?>(null) }
+        val snackbarHostState = remember { SnackbarHostState() }
+        val haptic = LocalHapticFeedback.current
 
-        Scaffold(
-            topBar = { TopAppBar(
-                navigationIcon = {
-                    val entry by navController.currentBackStackEntryAsState()
-                    val canNavigateBack = remember(entry) {
-                        navController.previousBackStackEntry != null
-                    }
-                    AnimatedVisibility(canNavigateBack) {
-                        IconButton(onClick = { navController.popBackStack() }) {
-                            Icon(imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                                contentDescription = stringResource(R.string.back))
+        val darkMode by prefs.rememberPreference(iKey("dark_mode"), 0)
+        val dynamicColors by prefs.rememberPreference(bKey("dynamic_colors"), true)
+
+        LaunchedEffect(Unit) {
+            toggleService<DownloadService>()
+        }
+
+        AppTheme(
+            darkTheme = when (darkMode) {
+                0 -> isSystemInDarkTheme()
+                1 -> true
+                2 -> false
+                else -> error("does not exist")
+            },
+            dynamicColor = dynamicColors
+        ) {
+            Scaffold(
+                snackbarHost = {
+                    val currentRoute = getCurrentRouteAsState(navController)
+                    SnackbarHost(snackbarHostState, modifier = Modifier
+                        .padding(bottom = if (currentRoute == "browser") 91.dp else 0.dp)
+                        .fillMaxWidth(),
+                        snackbar = {
+                            Snackbar(snackbarData = it,
+                                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                                contentColor = MaterialTheme.colorScheme.onSurface,
+                                actionColor = MaterialTheme.colorScheme.primary,
+                                actionContentColor = MaterialTheme.colorScheme.primary,
+                                dismissActionContentColor = MaterialTheme.colorScheme.onSurface)
                         }
+                    ) },
+                topBar = {
+                    AnimatedContent(topBarState.value) {
+                        it?.invoke() ?: TopAppBar(
+                            navigationIcon = {
+                                val entry by navController.currentBackStackEntryAsState()
+                                val canNavigateBack = remember(entry) {
+                                    navController.previousBackStackEntry != null
+                                }
+                                AnimatedVisibility(canNavigateBack) {
+                                    IconButton(onClick = { navController.popBackStack()
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress) }) {
+                                        Icon(imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                                            contentDescription = stringResource(R.string.back),
+                                            modifier = Modifier.tooltip(stringResource(R.string.back)))
+                                    }
+                                }
+                            },
+                            title = { Text(R.string.app_name) },
+                            scrollBehavior = scrollBehavior
+                        )
                     }
                 },
-                title = { Text(stringResource(R.string.app_name)) },
-                scrollBehavior = scrollBehavior
-            ) }
-        ) { padding ->
-            NavHost(
-                navController = navController,
-                startDestination = "modules",
-                modifier = Modifier.padding(paddingValues = padding),
-                enterTransition = {
-                    fadeIn(animationSpec = tween(340))
-                },
-                exitTransition = {
-                    fadeOut(animationSpec = tween(340))
-                },
-                builder = {
-                    composable("overlay", deepLinks = listOf(navDeepLink { uriPattern = "pb://overlay" })) { OverlayScreen(settings, scrollBehavior, this@MainActivity) { toggleService<OverlayService>() } }
-                    composable("aim_bot", deepLinks = listOf(navDeepLink { uriPattern = "pb://aim_bot" })) { AimBotScreen(this@MainActivity) }
-                    composable("input_mapper", deepLinks = listOf(navDeepLink { uriPattern = "pb://input_mapper" })) { InputMapperScreen(this@MainActivity, scrollBehavior) { toggleService<InputMapperService>() } }
-                    composable("dlna", deepLinks = listOf(navDeepLink { uriPattern = "pb://dlna" })) { DlnaServerScreen(this@MainActivity, scrollBehavior, pickAudio, pickVideo) { toggleService<DlnaServerService>() } }
-                    composable("file_manager", deepLinks = listOf(navDeepLink { uriPattern = "pb://file_manager" })) { FileManagerScreen(this@MainActivity, "/storage/emulated/0") }
-                    composable("playground", deepLinks = listOf(navDeepLink { uriPattern = "pb://playground" })) { PlaygroundScreen(this@MainActivity, scrollBehavior) }
-                    composable("settings", deepLinks = listOf(navDeepLink { uriPattern = "pb://settings" })) { SettingsScreen(navController, padding, settings, scrollBehavior) }
-                    composable("modules") { ModulesScreen(navController, modules) { id, labelId, descId, deepLink, iconId ->
-                        this@MainActivity.requestPinnedShortcut(id, getString(labelId), getString(descId), deepLink, iconId)
-                    } }
+                bottomBar = {
+                    AnimatedContent(bottomBarState.value) {
+                        it?.invoke()
+                    }
                 }
-            )
+            ) { padding ->
+                CompositionLocalProvider(
+                    LocalTopBarSetter provides { topBarState.value = it },
+                    LocalBottomBarSetter provides { bottomBarState.value = it },
+                    LocalSnackbarHostState provides snackbarHostState,
+                    LocalNavController provides navController,
+                    LocalActivityContext provides this,
+                    LocalScrollBehavior provides scrollBehavior,
+                    LocalPrefsRepository provides prefs,
+                    LocalHistoryRepository provides history
+                ) {
+                    var showClearDataDialog by remember { mutableStateOf(false) }
+
+                    NavHost(
+                        navController = navController,
+                        startDestination = "modules",
+                        modifier = Modifier.padding(paddingValues = padding),
+                        enterTransition = {
+                            fadeIn(animationSpec = tween(340))
+                        },
+                        exitTransition = {
+                            fadeOut(animationSpec = tween(340))
+                        },
+                        builder = {
+                            composable("overlay", deepLinks = listOf(navDeepLink { uriPattern = "pb://overlay" })) { OverlayScreen { toggleService<OverlayService>() } }
+                            composable("aim_bot", deepLinks = listOf(navDeepLink { uriPattern = "pb://aim_bot" })) { AimBotScreen() }
+                            composable("input_mapper", deepLinks = listOf(navDeepLink { uriPattern = "pb://input_mapper" })) { InputMapperScreen { toggleService<InputMapperService>() } }
+                            composable("dlna", deepLinks = listOf(navDeepLink { uriPattern = "pb://dlna" })) { DlnaServerScreen { toggleService<DlnaServerService>() } }
+                            composable("file_manager", deepLinks = listOf(navDeepLink { uriPattern = "pb://file_manager" })) { FileManagerScreen("/storage/emulated/0") }
+                            composable("browser", deepLinks = listOf(navDeepLink { uriPattern = "pb://browser" })) { BrowserScreen() }
+                            composable("playground", deepLinks = listOf(navDeepLink { uriPattern = "pb://playground" })) { PlaygroundScreen() }
+                            composable("modules") { ModulesScreen(navController, modules) { id, labelId, descId, deepLink, iconId ->
+                                this@MainActivity.requestPinnedShortcut(id, getString(labelId), getString(descId), deepLink, iconId)
+                            } }
+                            settingsGraph(navController,
+                                listOf(
+                                    SettingItem.Action(getString(R.string.clear_data), { showClearDataDialog = true }, icon = { Icon(Icons.Default.Clear, null) },
+                                        content = {
+                                            var clearCookies by remember { mutableStateOf(true) }
+                                            var clearCache by remember { mutableStateOf(true) }
+                                            var clearLocalStorage by remember { mutableStateOf(false) }
+                                            var clearPermissions by remember { mutableStateOf(false) }
+
+                                            if (!showClearDataDialog) {
+                                                return@Action
+                                            }
+
+                                            AlertDialog(
+                                                onDismissRequest = { showClearDataDialog = false },
+                                                title = { Text(R.string.clear_data) },
+                                                text = {
+                                                    Column {
+                                                        ListItem(headlineContent = { Text(R.string.cookies) },
+                                                            trailingContent = { Checkbox(checked = clearCookies, onCheckedChange = { clearCookies = it }) },
+                                                            modifier = Modifier.clickable { clearCookies = !clearCookies })
+                                                        ListItem(headlineContent = { Text(R.string.cache) },
+                                                            trailingContent = { Checkbox(checked = clearCache, onCheckedChange = { clearCache = it }) },
+                                                            modifier = Modifier.clickable { clearCache = !clearCache })
+                                                        ListItem(headlineContent = { Text(R.string.local_storage) },
+                                                            trailingContent = { Checkbox(checked = clearLocalStorage, onCheckedChange = { clearLocalStorage = it }) },
+                                                            modifier = Modifier.clickable { clearLocalStorage = !clearLocalStorage })
+                                                        ListItem(headlineContent = { Text(R.string.site_permissions) },
+                                                            trailingContent = { Checkbox(checked = clearPermissions, onCheckedChange = { clearPermissions = it }) },
+                                                            modifier = Modifier.clickable { clearPermissions = !clearPermissions })
+                                                    }
+                                                },
+                                                confirmButton = {
+                                                    TextButton(onClick = {
+                                                        if (clearCookies) {
+                                                            val cm = CookieManager.getInstance()
+                                                            cm.removeAllCookies(null)
+                                                            cm.flush()
+                                                        }
+                                                        if (clearCache) {
+                                                            WebView(this@MainActivity).clearCache(true)
+                                                        }
+                                                        if (clearLocalStorage) {
+                                                            WebStorage.getInstance().deleteAllData()
+                                                        }
+                                                        if (clearPermissions) {
+                                                            GeolocationPermissions.getInstance().clearAll()
+                                                        }
+                                                        showClearDataDialog = false
+                                                    }) {
+                                                        Text(R.string.clear)
+                                                    }
+                                                },
+                                                dismissButton = {
+                                                    TextButton(onClick = { showClearDataDialog = false }) { Text(R.string.cancel) }
+                                                }
+                                            )
+                                        }),
+                                    SettingItem.Input("Home page URL", defaultValue = DEFAULT_HOME_URL, validator = { it.isNotEmpty() }, icon = { Icon(
+                                        Icons.Default.Home, null) })
+                                ), "browser_settings")
+                            settingsGraph(navController,
+                                listOf(
+                                    SettingItem.SubPage(
+                                        label = "Appearance",
+                                        children = listOf(
+                                            SettingItem.Selection("Dark mode", listOf("System", "On", "Off"), icon = { Icon(painterResource(R.drawable.dark_mode_24px), null) }),
+                                            SettingItem.Toggle("Dynamic colors", true, icon = { Icon(painterResource(R.drawable.colors_24px), null) })
+                                        ),
+                                        icon = { Icon(painterResource(R.drawable.palette_24px), null) }
+                                    )
+                                ), "settings", listOf(navDeepLink { uriPattern = "pb://settings" }))
+                        }
+                    )
+                }
+            }
         }
     }
 
@@ -157,15 +331,6 @@ class MainActivity : ComponentActivity() {
         if (shortcutManager.isRequestPinShortcutSupported) {
             shortcutManager.requestPinShortcut(shortcut, null)
         }
-    }
-
-    private val pickAudio = registerForActivityResult(ActivityResultContracts.GetContent()) { it?.let(::playUri) }
-    private val pickVideo = registerForActivityResult(ActivityResultContracts.GetContent()) { it?.let(::playUri) }
-
-    private fun playUri(uri: Uri) {
-        val type = contentResolver.getType(uri) ?: "application/octet-stream"
-        val dlnaService = ServiceLocator.get(DlnaServerService::class.java)
-        dlnaService?.serveAndPlayUri(contentResolver, uri, type)
     }
 
 //    @Composable
@@ -221,13 +386,13 @@ class MainActivity : ComponentActivity() {
             unselectedIcon = {
                 Icon(
                     painter = painterResource(R.drawable.picture_in_picture_24px),
-                    contentDescription = stringResource(R.string.overlay)
+                    contentDescription = null
                 )
             },
             selectedIcon = {
                 Icon(
                     painter = painterResource(R.drawable.picture_in_picture_filled_24px),
-                    contentDescription = stringResource(R.string.overlay)
+                    contentDescription = null
                 )
             },
             id = "overlay"
@@ -238,13 +403,13 @@ class MainActivity : ComponentActivity() {
             unselectedIcon = {
                 Icon(
                     painter = painterResource(R.drawable.center_focus_strong_24px),
-                    contentDescription = stringResource(R.string.aim_bot)
+                    contentDescription = null
                 )
             },
             selectedIcon = {
                 Icon(
                     painter = painterResource(R.drawable.center_focus_strong_filled_24px),
-                    contentDescription = stringResource(R.string.aim_bot)
+                    contentDescription = null
                 )
             },
             id = "aim_bot"
@@ -255,13 +420,13 @@ class MainActivity : ComponentActivity() {
             unselectedIcon = {
                 Icon(
                     painter = painterResource(R.drawable.keyboard_external_input_24px),
-                    contentDescription = stringResource(R.string.input_mapper)
+                    contentDescription = null
                 )
             },
             selectedIcon = {
                 Icon(
                     painter = painterResource(R.drawable.keyboard_external_input_filled_24px),
-                    contentDescription = stringResource(R.string.input_mapper)
+                    contentDescription = null
                 )
             },
             id = "input_mapper"
@@ -272,13 +437,13 @@ class MainActivity : ComponentActivity() {
             unselectedIcon = {
                 Icon(
                     painter = painterResource(R.drawable.cast_24px),
-                    contentDescription = stringResource(R.string.dlna)
+                    contentDescription = null
                 )
             },
             selectedIcon = {
                 Icon(
                     painter = painterResource(R.drawable.cast_filled_24px),
-                    contentDescription = stringResource(R.string.dlna)
+                    contentDescription = null
                 )
             },
             id = "dlna"
@@ -289,16 +454,33 @@ class MainActivity : ComponentActivity() {
             unselectedIcon = {
                 Icon(
                     painter = painterResource(R.drawable.folder_open_24px),
-                    contentDescription = stringResource(R.string.file_manager)
+                    contentDescription = null
                 )
             },
             selectedIcon = {
                 Icon(
                     painter = painterResource(R.drawable.folder_open_filled_24px),
-                    contentDescription = stringResource(R.string.file_manager)
+                    contentDescription = null
                 )
             },
             id = "file_manager"
+        ),
+        Module(
+            label = R.string.browser,
+            description = R.string.browser_desc,
+            unselectedIcon = {
+                Icon(
+                    painter = painterResource(R.drawable.language_24px),
+                    contentDescription = null
+                )
+            },
+            selectedIcon = {
+                Icon(
+                    painter = painterResource(R.drawable.language_24px),
+                    contentDescription = null
+                )
+            },
+            id = "browser"
         ),
         Module(
             label = R.string.playground,
@@ -306,13 +488,13 @@ class MainActivity : ComponentActivity() {
             unselectedIcon = {
                 Icon(
                     painter = painterResource(R.drawable.experiment_24px),
-                    contentDescription = stringResource(R.string.playground)
+                    contentDescription = null
                 )
             },
             selectedIcon = {
                 Icon(
                     painter = painterResource(R.drawable.experiment_filled_24px),
-                    contentDescription = stringResource(R.string.playground)
+                    contentDescription = null
                 )
             },
             id = "playground"
@@ -323,30 +505,30 @@ class MainActivity : ComponentActivity() {
             unselectedIcon = {
                 Icon(
                     imageVector = Icons.Outlined.Settings,
-                    contentDescription = "settings"
+                    contentDescription = null
                 )
             },
             selectedIcon = {
                 Icon(
                     imageVector = Icons.Filled.Settings,
-                    contentDescription = "settings"
+                    contentDescription = null
                 )
             },
             id = "settings"
         )
     )
 
-//    @Composable
-//    private fun getCurrentRouteAsState(navController: NavHostController): String? {
-//        val navBackStackEntry by navController.currentBackStackEntryAsState()
-//        val currentRoute = navBackStackEntry?.destination?.route
-//        return currentRoute
-//    }
+    @Composable
+    private fun getCurrentRouteAsState(navController: NavController): String? {
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentRoute = navBackStackEntry?.destination?.route
+        return currentRoute
+    }
 
     @Suppress("UNCHECKED_CAST")
     private inline fun <reified T : Service> toggleService(): Boolean {
         if (!(ReflectUtils.getCompanionField<T>("isRunning") as MutableState<Boolean>).value) {
-            startService(Intent(this, T::class.java))
+            startForegroundService(Intent(this, T::class.java))
             Log.d(TAG, "started service ${T::class.simpleName}")
             return true
         }

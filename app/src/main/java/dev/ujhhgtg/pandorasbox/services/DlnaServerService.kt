@@ -17,7 +17,7 @@ import dev.ujhhgtg.pandorasbox.receivers.StopServiceReceiver
 import dev.ujhhgtg.pandorasbox.utils.DlnaController
 import dev.ujhhgtg.pandorasbox.utils.PermissionManager
 import dev.ujhhgtg.pandorasbox.utils.ServiceLocator
-import dev.ujhhgtg.pandorasbox.utils.SettingsRepository
+import dev.ujhhgtg.pandorasbox.utils.settings.PrefsRepository
 import dev.ujhhgtg.pandorasbox.utils.SimpleFileServer
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -41,7 +41,7 @@ import org.jupnp.transport.Router
 
 
 class DlnaServerService: Service() {
-    private lateinit var settings: SettingsRepository
+    private lateinit var settings: PrefsRepository
     companion object {
         @Volatile
         var isRunning: MutableState<Boolean> = mutableStateOf(false)
@@ -59,7 +59,7 @@ class DlnaServerService: Service() {
 
         isRunning.value = true
         startForegroundServiceWithNotification()
-        settings = SettingsRepository(this)
+        settings = PrefsRepository(this)
         ServiceLocator.register(this)
         upnp = object : UpnpServiceImpl(AndroidUpnpServiceConfiguration()) {
             override fun createRouter(

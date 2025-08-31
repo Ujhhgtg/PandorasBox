@@ -14,10 +14,10 @@ import dev.ujhhgtg.pandorasbox.R
 import dev.ujhhgtg.pandorasbox.receivers.StopServiceReceiver
 import dev.ujhhgtg.pandorasbox.utils.PermissionManager
 import dev.ujhhgtg.pandorasbox.utils.ServiceLocator
-import dev.ujhhgtg.pandorasbox.utils.SettingsRepository
+import dev.ujhhgtg.pandorasbox.utils.settings.PrefsRepository
 
 class AimBotService: Service() {
-    private lateinit var settings: SettingsRepository
+    private lateinit var settings: PrefsRepository
 
     companion object {
         @Volatile
@@ -38,7 +38,7 @@ class AimBotService: Service() {
 
         isRunning.value = true
         startForegroundServiceWithNotification()
-        settings = SettingsRepository(this)
+        settings = PrefsRepository(this)
         ServiceLocator.register(this)
     }
 

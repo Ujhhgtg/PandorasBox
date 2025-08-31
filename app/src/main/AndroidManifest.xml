@@ -23,10 +23,9 @@
 
     <uses-feature android:name="android.hardware.camera.any" android:required="false" />
 
-    <permission android:label="Receive Xposed Broadcast"
-        android:name="dev.ujhhgtg.pandorasbox.permission.RECEIVE_XPOSED_BROADCAST" />
-    <uses-permission android:name="dev.ujhhgtg.pandorasbox.permission.RECEIVE_XPOSED_BROADCAST" />
-
+<!--    <permission android:label="Receive Xposed Broadcast"-->
+<!--        android:name="dev.ujhhgtg.pandorasbox.permission.RECEIVE_XPOSED_BROADCAST" />-->
+<!--    <uses-permission android:name="dev.ujhhgtg.pandorasbox.permission.RECEIVE_XPOSED_BROADCAST" />-->
 
     <application
         android:allowBackup="true"
@@ -37,7 +36,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.PandorasBox"
-        android:enableOnBackInvokedCallback="true">
+        android:enableOnBackInvokedCallback="true"
+        android:hardwareAccelerated="true">
 
         <activity
             android:name=".ui.activities.MainActivity"
@@ -83,6 +83,12 @@
             android:foregroundServiceType="dataSync|connectedDevice">
         </service>
 
+        <service android:name=".services.DownloadService"
+            android:exported="false"
+            android:label="@string/download_manager"
+            android:foregroundServiceType="dataSync|connectedDevice">
+        </service>
+
         <receiver android:name=".receivers.ScreenRotationReceiver" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.CONFIGURATION_CHANGED" />
@@ -117,20 +123,20 @@
 <!--            </intent-filter>-->
 <!--        </receiver>-->
 
-        <meta-data
-            android:name="modularised"
-            android:value="true" />
+<!--        <meta-data-->
+<!--            android:name="modularised"-->
+<!--            android:value="true" />-->
 
-        <meta-data
-            android:name="nonprescription"
-            android:value="Pandora's Box's helper Xposed module. Provides foreground application change broadcast." />
+<!--        <meta-data-->
+<!--            android:name="nonprescription"-->
+<!--            android:value="Pandora's Box's helper Xposed module. Provides foreground application change broadcast." />-->
 
-        <meta-data
-            android:name="interconversion"
-            android:value="93" />
+<!--        <meta-data-->
+<!--            android:name="interconversion"-->
+<!--            android:value="93" />-->
 
-        <meta-data
-            android:name="xposedsharedprefs"
-            android:value="true"/>
+<!--        <meta-data-->
+<!--            android:name="xposedsharedprefs"-->
+<!--            android:value="true"/>-->
     </application>
 </manifest>

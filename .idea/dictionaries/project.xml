@@ -2,7 +2,9 @@
   <dictionary name="project">
     <words>
       <w>accessibilityservice</w>
+      <w>addr</w>
       <w>aimassistant</w>
+      <w>fileprovider</w>
       <w>motionevent</w>
       <w>pandoras</w>
       <w>pandorasbox</w>
