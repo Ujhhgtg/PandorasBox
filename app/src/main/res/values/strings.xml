@@ -83,7 +83,7 @@
     <string name="download_file">Download file</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
-    <string name="download_file_question">Do you want to download the file?</string>
+    <string name="download_file_question">Website wants to download a file</string>
     <string name="copy_link">Copy link</string>
     <string name="download_started">Download started</string>
     <string name="downloading_file">Downloading file…</string>
@@ -92,7 +92,8 @@
     <string name="closed_xxx">Closed %s.</string>
     <string name="undo">Undo</string>
     <string name="allow">Allow</string>
-    <string name="website_wants_to_copy">Website wants to copy text to clipboard: %s</string>
+    <string name="website_wants_to_copy">Website wants to copy text to clipboard</string>
+    <string name="website_wants_to_copy_xxx">Website wants to copy text to clipboard: %s</string>
     <string name="reload">Reload</string>
     <string name="website_asks_for_location_perm_xxx">Website asks for location permission: %1$s</string>
     <string name="ok">OK</string>
@@ -119,4 +120,9 @@
     <string name="enter_a_name">Enter a name</string>
     <string name="filename_must_not_be_empty">Filename must not be empty!</string>
     <string name="file_already_exists">File already exists!</string>
+    <string name="download_complete">Download complete</string>
+    <string name="yan_reader">Yan Reader</string>
+    <string name="yan_reader_resc">Read your favorite novels and books.</string>
+    <string name="gallery_organizer_desc">Organize your gallery.</string>
+    <string name="gallery_organizer">Gallery Organizer</string>
 </resources>

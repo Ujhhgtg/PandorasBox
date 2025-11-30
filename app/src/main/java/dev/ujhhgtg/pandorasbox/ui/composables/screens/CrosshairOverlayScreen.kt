@@ -24,19 +24,19 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import dev.ujhhgtg.pandorasbox.R
 import dev.ujhhgtg.pandorasbox.services.OverlayService
 import dev.ujhhgtg.pandorasbox.ui.activities.LocalActivityContext
-import dev.ujhhgtg.pandorasbox.ui.activities.LocalScrollBehavior
 import dev.ujhhgtg.pandorasbox.ui.activities.LocalPrefsRepository
+import dev.ujhhgtg.pandorasbox.ui.activities.LocalScrollBehavior
 import dev.ujhhgtg.pandorasbox.ui.composables.ButtonSpacer
 import dev.ujhhgtg.pandorasbox.ui.composables.DefaultColumn
 import dev.ujhhgtg.pandorasbox.ui.composables.NumberAdjuster
 import dev.ujhhgtg.pandorasbox.ui.composables.OffsetAdjuster
-import dev.ujhhgtg.pandorasbox.ui.composables.dialogs.PackageChooserDialog
 import dev.ujhhgtg.pandorasbox.ui.composables.Text
+import dev.ujhhgtg.pandorasbox.ui.composables.dialogs.PackageChooserDialog
 import dev.ujhhgtg.pandorasbox.utils.PermissionManager
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun OverlayScreen(toggleService: () -> Unit) {
+fun CrosshairOverlayScreen(toggleService: () -> Unit) {
     val activity = LocalActivityContext.current
     val scrollBehavior = LocalScrollBehavior.current
     val settings = LocalPrefsRepository.current

@@ -5,6 +5,7 @@ import kotlin.reflect.full.companionObject
 import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.memberProperties
 
+@Suppress("UNCHECKED_CAST")
 object ReflectUtils {
     inline fun <reified T : Any> getCompanionField(fieldName: String): Any? {
         val companionClass = T::class.companionObject ?: return null

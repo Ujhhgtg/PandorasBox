@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:padding="?android:attr/dialogPreferredPadding"
+    android:orientation="vertical">
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:paddingBottom="?android:attr/dialogPreferredPadding">
+        <ImageView android:id="@+id/basic_dialog_icon"
+            android:layout_width="1dp"
+            android:layout_height="1dp"
+            android:scaleType="fitCenter"
+            android:contentDescription="@null" />
+        <TextView android:id="@+id/basic_dialog_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textAppearance="@android:style/TextAppearance.Material.Title" />
+    </FrameLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fadeScrollbars="false">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+            <TextView android:id="@+id/basic_dialog_msg"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="@android:style/TextAppearance.Material.Subhead"
+                android:text=""
+                android:maxLength="200"
+                android:autoLink="email|phone|web"
+                android:textColor="?android:attr/textColorSecondary"/>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

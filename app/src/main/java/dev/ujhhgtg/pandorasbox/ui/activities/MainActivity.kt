@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.ShortcutInfo
 import android.content.pm.ShortcutManager
 import android.graphics.drawable.Icon
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.webkit.CookieManager
@@ -17,19 +18,22 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
@@ -42,6 +46,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Snackbar
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -56,7 +61,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
@@ -64,10 +71,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
 import dev.ujhhgtg.pandorasbox.R
 import dev.ujhhgtg.pandorasbox.models.DEFAULT_HOME_URL
@@ -80,14 +89,17 @@ import dev.ujhhgtg.pandorasbox.services.OverlayService
 import dev.ujhhgtg.pandorasbox.ui.composables.Text
 import dev.ujhhgtg.pandorasbox.ui.composables.screens.AimBotScreen
 import dev.ujhhgtg.pandorasbox.ui.composables.screens.BrowserScreen
+import dev.ujhhgtg.pandorasbox.ui.composables.screens.CrosshairOverlayScreen
 import dev.ujhhgtg.pandorasbox.ui.composables.screens.DlnaServerScreen
 import dev.ujhhgtg.pandorasbox.ui.composables.screens.FileManagerScreen
+import dev.ujhhgtg.pandorasbox.ui.composables.screens.GalleryOrganizerScreen
+import dev.ujhhgtg.pandorasbox.ui.composables.screens.GalleryOrganizingScreen
 import dev.ujhhgtg.pandorasbox.ui.composables.screens.InputMapperScreen
 import dev.ujhhgtg.pandorasbox.ui.composables.screens.ModulesScreen
-import dev.ujhhgtg.pandorasbox.ui.composables.screens.OverlayScreen
 import dev.ujhhgtg.pandorasbox.ui.composables.screens.PlaygroundScreen
 import dev.ujhhgtg.pandorasbox.ui.composables.settingsGraph
 import dev.ujhhgtg.pandorasbox.ui.theme.AppTheme
+import dev.ujhhgtg.pandorasbox.utils.PermissionManager
 import dev.ujhhgtg.pandorasbox.utils.ReflectUtils
 import dev.ujhhgtg.pandorasbox.utils.settings.HistoryRepository
 import dev.ujhhgtg.pandorasbox.utils.settings.PrefsRepository
@@ -136,6 +148,7 @@ class MainActivity : ComponentActivity() {
         val dynamicColors by prefs.rememberPreference(bKey("dynamic_colors"), true)
 
         LaunchedEffect(Unit) {
+            PermissionManager.checkAndRequestNotifications(this@MainActivity)
             toggleService<DownloadService>()
         }
 
@@ -148,6 +161,14 @@ class MainActivity : ComponentActivity() {
             },
             dynamicColor = dynamicColors
         ) {
+//        MiuixTheme(
+//            colors = when (darkMode) {
+//                0 -> if (isSystemInDarkTheme()) top.yukonga.miuix.kmp.theme.darkColorScheme() else top.yukonga.miuix.kmp.theme.lightColorScheme()
+//                1 -> top.yukonga.miuix.kmp.theme.darkColorScheme()
+//                2 -> top.yukonga.miuix.kmp.theme.lightColorScheme()
+//                else -> error("does not exist")
+//            }
+//        ) {
             Scaffold(
                 snackbarHost = {
                     val currentRoute = getCurrentRouteAsState(navController)
@@ -155,8 +176,10 @@ class MainActivity : ComponentActivity() {
                         .padding(bottom = if (currentRoute == "browser") 91.dp else 0.dp)
                         .fillMaxWidth(),
                         snackbar = {
-                            Snackbar(snackbarData = it,
-                                containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
+                            Snackbar(
+                                modifier = Modifier.alpha(0.7f),
+                                snackbarData = it,
+                                containerColor = MaterialTheme.colorScheme.surface,
                                 contentColor = MaterialTheme.colorScheme.onSurface,
                                 actionColor = MaterialTheme.colorScheme.primary,
                                 actionContentColor = MaterialTheme.colorScheme.primary,
@@ -208,18 +231,39 @@ class MainActivity : ComponentActivity() {
                         startDestination = "modules",
                         modifier = Modifier.padding(paddingValues = padding),
                         enterTransition = {
-                            fadeIn(animationSpec = tween(340))
+//                            fadeIn(animationSpec = tween(340))
+                            slideInHorizontally(initialOffsetX = { it })
                         },
                         exitTransition = {
-                            fadeOut(animationSpec = tween(340))
+//                            fadeOut(animationSpec = tween(340))
+                            slideOutHorizontally(targetOffsetX = { -it / 4 }) + fadeOut()
+                        },
+                        popEnterTransition = {
+                            slideInHorizontally(initialOffsetX = { -it / 4 }) + fadeIn()
+                        },
+                        popExitTransition = {
+                            scaleOut(targetScale = 0.9f) + fadeOut()
                         },
                         builder = {
-                            composable("overlay", deepLinks = listOf(navDeepLink { uriPattern = "pb://overlay" })) { OverlayScreen { toggleService<OverlayService>() } }
+                            composable("overlay", deepLinks = listOf(navDeepLink { uriPattern = "pb://overlay" })) { CrosshairOverlayScreen { toggleService<OverlayService>() } }
                             composable("aim_bot", deepLinks = listOf(navDeepLink { uriPattern = "pb://aim_bot" })) { AimBotScreen() }
                             composable("input_mapper", deepLinks = listOf(navDeepLink { uriPattern = "pb://input_mapper" })) { InputMapperScreen { toggleService<InputMapperService>() } }
                             composable("dlna", deepLinks = listOf(navDeepLink { uriPattern = "pb://dlna" })) { DlnaServerScreen { toggleService<DlnaServerService>() } }
                             composable("file_manager", deepLinks = listOf(navDeepLink { uriPattern = "pb://file_manager" })) { FileManagerScreen("/storage/emulated/0") }
                             composable("browser", deepLinks = listOf(navDeepLink { uriPattern = "pb://browser" })) { BrowserScreen() }
+                            composable("gallery_organizer", deepLinks = listOf(navDeepLink { uriPattern = "pb://gallery_organizer" })) { GalleryOrganizerScreen() }
+                            composable("gallery_organizer_operation/{folderPath}", arguments = listOf(
+                                navArgument("folderPath") { type = NavType.StringType }
+                            )) { backStackEntry ->
+                                val path = backStackEntry.arguments?.getString("folderPath")?.let { Uri.decode(it) }
+                                if (path != null) {
+                                    GalleryOrganizingScreen(folderPath = path)
+                                } else {
+                                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                        Text("Invalid Folder Path", color = androidx.compose.ui.graphics.Color.Red)
+                                    }
+                                }
+                            }
                             composable("playground", deepLinks = listOf(navDeepLink { uriPattern = "pb://playground" })) { PlaygroundScreen() }
                             composable("modules") { ModulesScreen(navController, modules) { id, labelId, descId, deepLink, iconId ->
                                 this@MainActivity.requestPinnedShortcut(id, getString(labelId), getString(descId), deepLink, iconId)
@@ -233,54 +277,52 @@ class MainActivity : ComponentActivity() {
                                             var clearLocalStorage by remember { mutableStateOf(false) }
                                             var clearPermissions by remember { mutableStateOf(false) }
 
-                                            if (!showClearDataDialog) {
-                                                return@Action
+                                            if (showClearDataDialog) {
+                                                AlertDialog(
+                                                    onDismissRequest = { showClearDataDialog = false },
+                                                    title = { Text(R.string.clear_data) },
+                                                    text = {
+                                                        Column {
+                                                            ListItem(headlineContent = { Text(R.string.cookies) },
+                                                                trailingContent = { Checkbox(checked = clearCookies, onCheckedChange = { clearCookies = it }) },
+                                                                modifier = Modifier.clickable { clearCookies = !clearCookies })
+                                                            ListItem(headlineContent = { Text(R.string.cache) },
+                                                                trailingContent = { Checkbox(checked = clearCache, onCheckedChange = { clearCache = it }) },
+                                                                modifier = Modifier.clickable { clearCache = !clearCache })
+                                                            ListItem(headlineContent = { Text(R.string.local_storage) },
+                                                                trailingContent = { Checkbox(checked = clearLocalStorage, onCheckedChange = { clearLocalStorage = it }) },
+                                                                modifier = Modifier.clickable { clearLocalStorage = !clearLocalStorage })
+                                                            ListItem(headlineContent = { Text(R.string.site_permissions) },
+                                                                trailingContent = { Checkbox(checked = clearPermissions, onCheckedChange = { clearPermissions = it }) },
+                                                                modifier = Modifier.clickable { clearPermissions = !clearPermissions })
+                                                        }
+                                                    },
+                                                    confirmButton = {
+                                                        TextButton(onClick = {
+                                                            if (clearCookies) {
+                                                                val cm = CookieManager.getInstance()
+                                                                cm.removeAllCookies(null)
+                                                                cm.flush()
+                                                            }
+                                                            if (clearCache) {
+                                                                WebView(this@MainActivity).clearCache(true)
+                                                            }
+                                                            if (clearLocalStorage) {
+                                                                WebStorage.getInstance().deleteAllData()
+                                                            }
+                                                            if (clearPermissions) {
+                                                                GeolocationPermissions.getInstance().clearAll()
+                                                            }
+                                                            showClearDataDialog = false
+                                                        }) {
+                                                            Text(R.string.clear)
+                                                        }
+                                                    },
+                                                    dismissButton = {
+                                                        TextButton(onClick = { showClearDataDialog = false }) { Text(R.string.cancel) }
+                                                    }
+                                                )
                                             }
-
-                                            AlertDialog(
-                                                onDismissRequest = { showClearDataDialog = false },
-                                                title = { Text(R.string.clear_data) },
-                                                text = {
-                                                    Column {
-                                                        ListItem(headlineContent = { Text(R.string.cookies) },
-                                                            trailingContent = { Checkbox(checked = clearCookies, onCheckedChange = { clearCookies = it }) },
-                                                            modifier = Modifier.clickable { clearCookies = !clearCookies })
-                                                        ListItem(headlineContent = { Text(R.string.cache) },
-                                                            trailingContent = { Checkbox(checked = clearCache, onCheckedChange = { clearCache = it }) },
-                                                            modifier = Modifier.clickable { clearCache = !clearCache })
-                                                        ListItem(headlineContent = { Text(R.string.local_storage) },
-                                                            trailingContent = { Checkbox(checked = clearLocalStorage, onCheckedChange = { clearLocalStorage = it }) },
-                                                            modifier = Modifier.clickable { clearLocalStorage = !clearLocalStorage })
-                                                        ListItem(headlineContent = { Text(R.string.site_permissions) },
-                                                            trailingContent = { Checkbox(checked = clearPermissions, onCheckedChange = { clearPermissions = it }) },
-                                                            modifier = Modifier.clickable { clearPermissions = !clearPermissions })
-                                                    }
-                                                },
-                                                confirmButton = {
-                                                    TextButton(onClick = {
-                                                        if (clearCookies) {
-                                                            val cm = CookieManager.getInstance()
-                                                            cm.removeAllCookies(null)
-                                                            cm.flush()
-                                                        }
-                                                        if (clearCache) {
-                                                            WebView(this@MainActivity).clearCache(true)
-                                                        }
-                                                        if (clearLocalStorage) {
-                                                            WebStorage.getInstance().deleteAllData()
-                                                        }
-                                                        if (clearPermissions) {
-                                                            GeolocationPermissions.getInstance().clearAll()
-                                                        }
-                                                        showClearDataDialog = false
-                                                    }) {
-                                                        Text(R.string.clear)
-                                                    }
-                                                },
-                                                dismissButton = {
-                                                    TextButton(onClick = { showClearDataDialog = false }) { Text(R.string.cancel) }
-                                                }
-                                            )
                                         }),
                                     SettingItem.Input("Home page URL", defaultValue = DEFAULT_HOME_URL, validator = { it.isNotEmpty() }, icon = { Icon(
                                         Icons.Default.Home, null) })
@@ -383,15 +425,9 @@ class MainActivity : ComponentActivity() {
         Module(
             label = R.string.overlay,
             description = R.string.overlay_desc,
-            unselectedIcon = {
+            icon = {
                 Icon(
                     painter = painterResource(R.drawable.picture_in_picture_24px),
-                    contentDescription = null
-                )
-            },
-            selectedIcon = {
-                Icon(
-                    painter = painterResource(R.drawable.picture_in_picture_filled_24px),
                     contentDescription = null
                 )
             },
@@ -400,15 +436,9 @@ class MainActivity : ComponentActivity() {
         Module(
             label = R.string.aim_bot,
             description = R.string.aim_bot_desc,
-            unselectedIcon = {
+            icon = {
                 Icon(
                     painter = painterResource(R.drawable.center_focus_strong_24px),
-                    contentDescription = null
-                )
-            },
-            selectedIcon = {
-                Icon(
-                    painter = painterResource(R.drawable.center_focus_strong_filled_24px),
                     contentDescription = null
                 )
             },
@@ -417,15 +447,9 @@ class MainActivity : ComponentActivity() {
         Module(
             label = R.string.input_mapper,
             description = R.string.input_mapper_desc,
-            unselectedIcon = {
+            icon = {
                 Icon(
                     painter = painterResource(R.drawable.keyboard_external_input_24px),
-                    contentDescription = null
-                )
-            },
-            selectedIcon = {
-                Icon(
-                    painter = painterResource(R.drawable.keyboard_external_input_filled_24px),
                     contentDescription = null
                 )
             },
@@ -434,15 +458,9 @@ class MainActivity : ComponentActivity() {
         Module(
             label = R.string.dlna,
             description = R.string.dlna_desc,
-            unselectedIcon = {
+            icon = {
                 Icon(
                     painter = painterResource(R.drawable.cast_24px),
-                    contentDescription = null
-                )
-            },
-            selectedIcon = {
-                Icon(
-                    painter = painterResource(R.drawable.cast_filled_24px),
                     contentDescription = null
                 )
             },
@@ -451,15 +469,9 @@ class MainActivity : ComponentActivity() {
         Module(
             label = R.string.file_manager,
             description = R.string.file_manager_desc,
-            unselectedIcon = {
+            icon = {
                 Icon(
                     painter = painterResource(R.drawable.folder_open_24px),
-                    contentDescription = null
-                )
-            },
-            selectedIcon = {
-                Icon(
-                    painter = painterResource(R.drawable.folder_open_filled_24px),
                     contentDescription = null
                 )
             },
@@ -468,13 +480,7 @@ class MainActivity : ComponentActivity() {
         Module(
             label = R.string.browser,
             description = R.string.browser_desc,
-            unselectedIcon = {
-                Icon(
-                    painter = painterResource(R.drawable.language_24px),
-                    contentDescription = null
-                )
-            },
-            selectedIcon = {
+            icon = {
                 Icon(
                     painter = painterResource(R.drawable.language_24px),
                     contentDescription = null
@@ -483,17 +489,22 @@ class MainActivity : ComponentActivity() {
             id = "browser"
         ),
         Module(
-            label = R.string.playground,
-            description = R.string.playground_desc,
-            unselectedIcon = {
+            label = R.string.gallery_organizer,
+            description = R.string.gallery_organizer_desc,
+            icon = {
                 Icon(
-                    painter = painterResource(R.drawable.experiment_24px),
+                    painter = painterResource(R.drawable.gallery_thumbnail_24px),
                     contentDescription = null
                 )
             },
-            selectedIcon = {
+            id = "gallery_organizer"
+        ),
+        Module(
+            label = R.string.playground,
+            description = R.string.playground_desc,
+            icon = {
                 Icon(
-                    painter = painterResource(R.drawable.experiment_filled_24px),
+                    painter = painterResource(R.drawable.experiment_24px),
                     contentDescription = null
                 )
             },
@@ -502,15 +513,9 @@ class MainActivity : ComponentActivity() {
         Module(
             label = R.string.settings,
             description = R.string.settings_desc,
-            unselectedIcon = {
+            icon = {
                 Icon(
                     imageVector = Icons.Outlined.Settings,
-                    contentDescription = null
-                )
-            },
-            selectedIcon = {
-                Icon(
-                    imageVector = Icons.Filled.Settings,
                     contentDescription = null
                 )
             },

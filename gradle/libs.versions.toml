@@ -1,11 +1,12 @@
 [versions]
-agp = "8.12.1"
-camera = "1.4.2"
+agp = "8.13.1"
+camera = "1.5.1"
+coilCompose = "3.3.0"
 javaWebsocket = "1.6.0"
 javaxServlet = "4.0.1"
 jetty = "9.4.58.v20250814" # do not upgrade to higher versions, because javax.* is renamed to jakarta.* in later versions, but jupnp still uses the old namespace
 media3Exoplayer = "1.8.0"
-protobufJavaLite = "4.32.0"
+protobufJavaLite = "4.33.0"
 shizuku = "13.1.5"
 #poseDetectionAccurate = "18.0.0-beta5"
 slf4jAndroid = "1.7.36"
@@ -14,21 +15,25 @@ slf4jApi = "2.0.17"
 #kavaref = "1.0.1"
 #yukihookapi = "1.3.0"
 datastore = "1.1.7"
-kotlin = "2.2.10"
+kotlin = "2.2.21"
 coreKtx = "1.17.0"
-lifecycle = "2.9.2"
-activityCompose = "1.10.1"
+lifecycle = "2.9.4"
+activityCompose = "1.11.0"
 biometric = "1.4.0-alpha04"
-composeBom = "2025.08.00"
+composeBom = "2025.11.00"
 appcompat = "1.7.1"
-ksp = "2.2.10-2.0.2"
-navigationCompose = "2.9.3"
+ksp = "2.2.21-RC2-2.0.4"
+navigationCompose = "2.9.6"
 #litert = "1.4.0"
 jupnp = "3.0.3"
 nanoHttpd = "2.3.1"
-composeFoundation = "1.10.0-alpha01"
+composeFoundation = "1.10.0-beta02"
 proto = "0.9.5"
-runtime = "1.9.0"
+googleAndroidMaterial = "1.14.0-alpha06"
+miuix = "0.6.1"
+rhino = "1.8.0"
+googleAndroidMaterialIconsCore = "1.7.8"
+foundation = "1.9.5"
 
 [libraries]
 androidx-camera-extensions = { module = "androidx.camera:camera-extensions", version.ref = "camera" }
@@ -48,6 +53,10 @@ androidx-media3-exoplayer = { module = "androidx.media3:media3-exoplayer", versi
 androidx-media3-ui-compose = { module = "androidx.media3:media3-ui-compose", version.ref = "media3Exoplayer" }
 androidx-media3-ui = { module = "androidx.media3:media3-ui", version.ref = "media3Exoplayer" }
 androidx-media3-exoplayer-dash = { module = "androidx.media3:media3-exoplayer-dash", version.ref = "media3Exoplayer" }
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coilCompose" }
+coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coilCompose" }
+google-android-material = { module = "com.google.android.material:material", version.ref = "googleAndroidMaterial" }
+androidx-compose-material-icons-core = { module = "androidx.compose.material:material-icons-core", version.ref = "googleAndroidMaterialIconsCore" }
 java-websocket = { module = "org.java-websocket:Java-WebSocket", version.ref = "javaWebsocket" }
 javax-servlet-api = { module = "javax.servlet:javax.servlet-api", version.ref = "javaxServlet" }
 jetty-client = { module = "org.eclipse.jetty:jetty-client", version.ref = "jetty" }
@@ -83,7 +92,9 @@ androidx-navigation-runtime-android = { group = "androidx.navigation", name = "n
 jupnp = { group = "org.jupnp", name = "org.jupnp", version.ref = "jupnp" }
 jupnp-android = { group = "org.jupnp", name = "org.jupnp.android", version.ref = "jupnp" }
 nanoHttpd = { group = "org.nanohttpd", name = "nanohttpd", version.ref = "nanoHttpd" }
-androidx-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "runtime" }
+miuix = { module = "top.yukonga.miuix.kmp:miuix", version.ref = "miuix" }
+rhino = { module = "org.mozilla:rhino", version.ref = "rhino" }
+androidx-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

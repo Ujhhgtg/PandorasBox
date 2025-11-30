@@ -12,7 +12,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.core.app.NotificationCompat
 import androidx.core.content.FileProvider
 import dev.ujhhgtg.pandorasbox.R
-import dev.ujhhgtg.pandorasbox.receivers.StopServiceReceiver
 import dev.ujhhgtg.pandorasbox.utils.PermissionManager
 import dev.ujhhgtg.pandorasbox.utils.ServiceLocator
 import dev.ujhhgtg.pandorasbox.utils.settings.PrefsRepository
@@ -24,12 +23,13 @@ import java.io.File
 import java.io.FileOutputStream
 import java.net.HttpURLConnection
 import java.net.URL
+import java.util.Locale
 import java.util.concurrent.atomic.AtomicInteger
 
 class DownloadService: Service() {
     private lateinit var prefs: PrefsRepository
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val notificationIdCounter = AtomicInteger(ID + 1)
+    private val dlIdCounter = AtomicInteger(ID + 1)
 
     companion object {
         @Volatile
@@ -62,22 +62,9 @@ class DownloadService: Service() {
         val manager = getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(channel)
 
-        val stopIntent = Intent(this, StopServiceReceiver::class.java)
-        stopIntent.putExtra("service", ID)
-        val stopPendingIntent = PendingIntent.getBroadcast(
-            this,
-            0,
-            stopIntent,
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Download Active")
+            .setContentTitle(getString(R.string.download_manager))
             .setPriority(NotificationCompat.PRIORITY_LOW)
-            .addAction(
-                R.drawable.cancel_24px,
-                "Stop",
-                stopPendingIntent
-            )
             .setOngoing(true)
             .build()
 
@@ -93,7 +80,7 @@ class DownloadService: Service() {
         onProgress: ((Int) -> Unit)? = null,
         onComplete: ((File?) -> Unit)? = null
     ) {
-        val notificationId = notificationIdCounter.getAndIncrement()
+        val dlId = dlIdCounter.getAndIncrement()
 
         scope.launch {
             try {
@@ -114,14 +101,29 @@ class DownloadService: Service() {
                 val buffer = ByteArray(8 * 1024)
                 var total: Long = 0
                 var count: Int
+
+                val startTime = System.currentTimeMillis()
+                var lastTime = startTime
+                var lastTotal: Long = 0
+
                 while (input.read(buffer).also { count = it } != -1) {
                     output.write(buffer, 0, count)
                     total += count
 
                     if (length > 0) {
-                        val progress = (total * 100 / length).toInt()
-                        onProgress?.invoke(progress)
-                        updateNotification(notificationId, fileName, progress)
+                        val now = System.currentTimeMillis()
+                        if (now - lastTime >= 1000) { // update every second
+                            val bytesThisSecond = total - lastTotal
+                            val speed = bytesThisSecond * 1000 / (now - lastTime)
+                            val remaining = (length - total) / (if (speed > 0) speed else 1)
+                            val progress = (total * 100 / length).toInt()
+
+                            onProgress?.invoke(progress)
+                            updateNotification(dlId, fileName, progress, speed, remaining)
+
+                            lastTime = now
+                            lastTotal = total
+                        }
                     }
                 }
 
@@ -129,37 +131,47 @@ class DownloadService: Service() {
                 output.close()
                 input.close()
 
-                showCompleteNotification(notificationId, fileName, outputFile, mimeType)
-                removeNotification(notificationId)
+                removeNotification(dlId)
+                showCompleteNotification(dlId, fileName, outputFile, mimeType)
 
                 onComplete?.invoke(outputFile)
             } catch (e: Exception) {
                 Log.e(TAG, "exception while downloading", e)
-                showFailedNotification(notificationId, fileName)
-                removeNotification(notificationId)
+                removeNotification(dlId)
+                showFailedNotification(dlId, fileName)
                 onComplete?.invoke(null)
             }
         }
     }
 
-    private fun removeNotification(notificationId: Int) {
+    private fun removeNotification(dlId: Int) {
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        manager.cancel(notificationId)
+        manager.cancel(dlId)
     }
 
-    private fun updateNotification(notificationId: Int, fileName: String, progress: Int) {
+    private fun updateNotification(
+        dlId: Int,
+        fileName: String,
+        progress: Int,
+        speedBytes: Long,
+        remainingSeconds: Long
+    ) {
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        val speedText = formatSpeed(speedBytes)
+        val etaText = formatRemainingTime(remainingSeconds)
+
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle(getString(R.string.downloading_file))
-            .setContentText("$fileName ($progress%)")
+            .setContentText("$fileName • $speedText • $etaText left")
             .setSmallIcon(android.R.drawable.stat_sys_download)
             .setProgress(100, progress, false)
             .setOngoing(true)
             .build()
-        manager.notify(notificationId, notification)
+
+        manager.notify(dlId, notification)
     }
 
-    private fun showCompleteNotification(notificationId: Int, fileName: String, file: File, mimeType: String? = null) {
+    private fun showCompleteNotification(dlId: Int, fileName: String, file: File, mimeType: String? = null) {
         val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
         val openIntent = Intent(Intent.ACTION_VIEW).apply {
@@ -174,19 +186,19 @@ class DownloadService: Service() {
 
         val pendingIntent = PendingIntent.getActivity(
             this,
-            notificationId,
+            dlId,
             openIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Download complete")
+            .setContentTitle(getString(R.string.download_complete))
             .setContentText(fileName)
             .setContentIntent(pendingIntent)
             .setSmallIcon(android.R.drawable.stat_sys_download_done)
             .setAutoCancel(true)
             .build()
-        manager.notify(notificationId, notification)
+        manager.notify(dlId, notification)
     }
 
     private fun showFailedNotification(notificationId: Int, fileName: String) {
@@ -199,6 +211,18 @@ class DownloadService: Service() {
             .build()
         manager.notify(notificationId, notification)
     }
+
+    private fun formatSpeed(bytesPerSecond: Long): String {
+        val kbps = bytesPerSecond / 1024.0
+        return if (kbps >= 1024) String.format(Locale.ROOT, "%.1f MiB/s", kbps / 1024) else String.format(Locale.ROOT, "%.0f KiB/s", kbps)
+    }
+
+    private fun formatRemainingTime(seconds: Long): String {
+        val minutes = seconds / 60
+        val secs = seconds % 60
+        return if (minutes > 0) "${minutes}m ${secs}s" else "${secs}s"
+    }
+
 
     override fun onDestroy() {
         super.onDestroy()

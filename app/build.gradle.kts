@@ -12,6 +12,7 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.devtools.ksp)
     alias(libs.plugins.google.protobuf)
+    id("kotlin-parcelize")
 }
 
 android {
@@ -20,7 +21,7 @@ android {
 
     defaultConfig {
         applicationId = "dev.ujhhgtg.pandorasbox"
-        minSdk = 35
+        minSdk = 33
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
@@ -66,13 +67,17 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.compose.material.icons.core)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.datastore.preferences)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.navigation.runtime.android)
+    implementation(libs.androidx.foundation)
     debugImplementation(libs.androidx.ui.tooling)
     implementation(libs.androidx.biometric)
     implementation(libs.androidx.compose.foundation)
+    implementation(libs.google.android.material)
+//    implementation(libs.miuix)
 
     // YukiHookAPI
 //    implementation(libs.yukihookapi.api)
@@ -129,6 +134,13 @@ dependencies {
     implementation(libs.androidx.media3.exoplayer.dash)
     implementation(libs.androidx.media3.ui)
     implementation(libs.androidx.media3.ui.compose)
+
+    // Rhino
+    implementation(libs.rhino)
+
+    // Coil
+    implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
 }
 
 //protobuf {

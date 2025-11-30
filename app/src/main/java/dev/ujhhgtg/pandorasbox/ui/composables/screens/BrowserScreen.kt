@@ -23,7 +23,6 @@ import android.webkit.WebViewClient
 import android.widget.EditText
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
-import androidx.appcompat.app.AlertDialog
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -105,6 +104,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.net.toUri
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import dev.ujhhgtg.pandorasbox.R
 import dev.ujhhgtg.pandorasbox.models.BrowserTab
 import dev.ujhhgtg.pandorasbox.models.DEFAULT_HOME_URL
@@ -436,6 +436,7 @@ fun BrowserScreen() {
                                     .heightIn(max = 150.dp)
                                     .padding(top = 8.dp, start = 8.dp, end = 8.dp)
                             ) {
+                                // TODO: real suggestions
                                 items(listOf("Suggestion 1", "Suggestion 2", "Suggestion 3")) { suggestion ->
                                     Text(
                                         text = suggestion,
@@ -778,13 +779,18 @@ private fun createTab(
         settings.displayZoomControls = false
         settings.safeBrowsingEnabled = false
         settings.mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
+        isLongClickable = true
+        setOnLongClickListener {
+            
+            return@setOnLongClickListener true
+        }
 
         val cookieManager = CookieManager.getInstance()
         cookieManager.setAcceptCookie(true)
         cookieManager.setAcceptThirdPartyCookies(this, false)
 
         addJavascriptInterface(
-            ClipboardBridge(context, scope, snackbarHostState),
+            ClipboardBridge(context),
             "ClipboardBridge"
         )
 
@@ -881,7 +887,7 @@ private fun createTab(
             }
 
             override fun onJsAlert(view: WebView, url: String, message: String, result: JsResult): Boolean {
-                AlertDialog.Builder(context)
+                MaterialAlertDialogBuilder(context)
                     .setTitle("Website alerts: $url")
                     .setMessage(message)
                     .setPositiveButton(android.R.string.ok) { _, _ -> result.confirm() }
@@ -891,7 +897,7 @@ private fun createTab(
             }
 
             override fun onJsConfirm(view: WebView, url: String, message: String, result: JsResult): Boolean {
-                AlertDialog.Builder(context)
+                MaterialAlertDialogBuilder(context)
                     .setTitle("Website asks for confirmation: $url")
                     .setMessage(message)
                     .setPositiveButton(android.R.string.ok) { _, _ -> result.confirm() }
@@ -910,7 +916,7 @@ private fun createTab(
             ): Boolean {
                 val input = EditText(context)
                 input.setText(defaultValue)
-                AlertDialog.Builder(context)
+                MaterialAlertDialogBuilder(context)
                     .setTitle("Website prompts for input: $url")
                     .setMessage(message)
                     .setView(input)
@@ -948,7 +954,7 @@ private fun createTab(
             }
 
             override fun onGeolocationPermissionsShowPrompt(origin: String, callback: GeolocationPermissions.Callback) {
-                AlertDialog.Builder(context)
+                MaterialAlertDialogBuilder(context)
                     .setTitle(context.getString(R.string.website_asks_for_location_perm_xxx, url))
                     .setPositiveButton("Allow") { _, _ -> callback.invoke(origin, true, false) }
                     .setNegativeButton("Deny") { _, _ -> callback.invoke(origin, false, false) }
@@ -959,7 +965,7 @@ private fun createTab(
             val fileName = URLUtil.guessFileName(url, contentDisposition, mimeType)
             val input = EditText(ctx)
             input.setText(fileName)
-            AlertDialog.Builder(ctx)
+            MaterialAlertDialogBuilder(context)
                 .setTitle(R.string.download_file_question)
                 .setView(input)
                 .setPositiveButton(R.string.yes) { _, _ ->
@@ -968,7 +974,7 @@ private fun createTab(
                     dlManager.startDownload(
                         url = url,
                         outputDir = outputDir,
-                        fileName = fileName,
+                        fileName = input.text.toString(),
                         mimeType = mimeType,
                         headers = mapOf("User-Agent" to userAgent),
                         onComplete = { file ->

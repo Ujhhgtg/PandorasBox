@@ -32,7 +32,6 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import dev.ujhhgtg.pandorasbox.R
 import dev.ujhhgtg.pandorasbox.models.Module
-import dev.ujhhgtg.pandorasbox.ui.activities.LocalActivityContext
 import dev.ujhhgtg.pandorasbox.ui.composables.Text
 import dev.ujhhgtg.pandorasbox.utils.tooltip
 
@@ -54,7 +53,6 @@ fun ModulesScreen(navController: NavController, modules: List<Module>, onAddShor
 fun ModuleCard(navController: NavController, module: Module, onAddShortcut: (String, Int, Int, String, Int) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     val haptic = LocalHapticFeedback.current
-    val ctx = LocalActivityContext.current
 
     ListItem(
         modifier = Modifier
@@ -67,7 +65,7 @@ fun ModuleCard(navController: NavController, module: Module, onAddShortcut: (Str
         colors = ListItemDefaults.colors(
             containerColor = MaterialTheme.colorScheme.surfaceContainer
         ),
-        leadingContent = module.unselectedIcon,
+        leadingContent = module.icon,
         headlineContent = { Text(text = stringResource(module.label), style = MaterialTheme.typography.titleMedium) },
         supportingContent = { Text(text = stringResource(module.description), style = MaterialTheme.typography.bodyMedium) },
         trailingContent = {

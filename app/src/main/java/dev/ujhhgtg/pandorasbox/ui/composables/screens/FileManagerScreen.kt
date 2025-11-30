@@ -181,6 +181,7 @@ fun FileManagerScreen(rootPath: String) {
                     navigationIconContentColor = colors.onSecondaryContainer,
                     titleContentColor = colors.onSecondaryContainer,
                     actionIconContentColor = colors.onSecondaryContainer,
+                    subtitleContentColor = colors.onSecondaryContainer
                 ),
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack()
@@ -254,7 +255,7 @@ fun FileManagerScreen(rootPath: String) {
         setBottomBar {
             BottomAppBar(modifier = Modifier.height(48.dp)) {
                 Row(Modifier.fillMaxSize(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically) {
                     var showCreateDialog by remember { mutableStateOf(false) }
                     IconButton(onClick = { showCreateDialog = true }) {
@@ -344,10 +345,12 @@ fun FileManagerScreen(rootPath: String) {
         }
     }
 
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+    BoxWithConstraints(Modifier.fillMaxHeight()) {
         val totalWidth = constraints.maxWidth.toFloat()
-        val shadowWidth = 6.dp
-        val dividerX = if (leftIsActive) totalWidth / 2f else totalWidth / 2f - shadowWidth.toPx()
+        val totalHeight = constraints.maxHeight.toFloat()
+        val shadowWidth = 6
+        val shadowWidthDp = shadowWidth.dp
+        val dividerX = if (leftIsActive) totalWidth / 2f else totalWidth / 2f - shadowWidthDp.toPx()
 
         Row(modifier = Modifier.fillMaxSize()) {
             FileManagerPane(
@@ -390,8 +393,15 @@ fun FileManagerScreen(rootPath: String) {
 
         Box(
             modifier = Modifier
+                .fillMaxWidth(0.5f)
+                .height(shadowWidthDp)
+                .offset { if (leftIsActive) IntOffset(dividerX.toInt(), 0) else IntOffset(0, 0) }
+                .background(Brush.verticalGradient(colors = listOf(Color.Black.copy(alpha = 0.2f), Color.Transparent)))
+        )
+        Box(
+            modifier = Modifier
                 .fillMaxHeight()
-                .width(shadowWidth)
+                .width(shadowWidthDp)
                 .offset { IntOffset(dividerX.toInt(), 0) }
                 .background(Brush.horizontalGradient(colors =
                     if (leftIsActive) listOf(Color.Black.copy(alpha = 0.2f), Color.Transparent)
@@ -400,11 +410,66 @@ fun FileManagerScreen(rootPath: String) {
         Box(
             modifier = Modifier
                 .fillMaxWidth(0.5f)
-                .height(shadowWidth)
-                .offset { if (leftIsActive) IntOffset(dividerX.toInt(), 0) else IntOffset(0, 0) }
-                .background(Brush.verticalGradient(colors = listOf(Color.Black.copy(alpha = 0.2f), Color.Transparent)))
+                .height(shadowWidthDp)
+                .offset { if (leftIsActive) IntOffset(0, (totalHeight - shadowWidth).toInt()) else IntOffset(dividerX.toInt(), (totalHeight - shadowWidth).toInt()) }
+                .background(Brush.verticalGradient(colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.2f))))
         )
     }
+
+//    Row(Modifier.fillMaxWidth().height(48.dp),
+//        horizontalArrangement = Arrangement.SpaceBetween,
+//        verticalAlignment = Alignment.CenterVertically) {
+//        var showCreateDialog by remember { mutableStateOf(false) }
+//        IconButton(onClick = { showCreateDialog = true }) {
+//            Icon(Icons.Default.Add, R.string.create)
+//        }
+//        var fileName by remember { mutableStateOf("") }
+//        var errorMessage by remember { mutableStateOf<String?>(null) }
+//        if (showCreateDialog) {
+//            AlertDialog(onDismissRequest = { showCreateDialog = false },
+//                title = { Text(R.string.create) },
+//                text = {
+//                    Column {
+//                        OutlinedTextField(
+//                            value = fileName,
+//                            onValueChange = { fileName = it },
+//                            label = { Text(R.string.enter_a_name) },
+//                            singleLine = true,
+//                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+//                        )
+//                        errorMessage?.let {
+//                            Text(text = it, color = MaterialTheme.colorScheme.error)
+//                        }
+//                    }
+//                },
+//                dismissButton = { TextButton(onClick = {
+//                    if (fileName.isEmpty()) {
+//                        errorMessage = ctx.getString(R.string.filename_must_not_be_empty)
+//                        return@TextButton
+//                    }
+//                    if (curPath().resolve(fileName).exists()) {
+//                        errorMessage = ctx.getString(R.string.file_already_exists)
+//                        return@TextButton
+//                    }
+//                    curPath().resolve(fileName).createNewFile()
+//                    showCreateDialog = false
+//                    fileName = ""
+//                }) { Text(R.string.file) } },
+//                confirmButton = { TextButton(onClick = {
+//                    if (fileName.isEmpty()) {
+//                        errorMessage = ctx.getString(R.string.filename_must_not_be_empty)
+//                        return@TextButton
+//                    }
+//                    if (curPath().resolve(fileName).exists()) {
+//                        errorMessage = ctx.getString(R.string.file_already_exists)
+//                        return@TextButton
+//                    }
+//                    Files.createDirectory(curPath().resolve(fileName).toPath())
+//                    showCreateDialog = false
+//                    fileName = ""
+//                }) { Text(R.string.directory) } })
+//        }
+//    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -476,7 +541,7 @@ fun FileManagerPane(
     ) {
         Column(
             modifier = Modifier
-                .background(colors.surfaceContainerHigh)
+                .background(colors.surface)
                 .pointerInput(Unit) {
                     awaitPointerEventScope {
                         while (true) {
