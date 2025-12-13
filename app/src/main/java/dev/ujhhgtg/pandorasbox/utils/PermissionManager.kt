@@ -15,27 +15,35 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import dev.ujhhgtg.pandorasbox.R
-import rikka.shizuku.Shizuku
+
+//import rikka.shizuku.Shizuku
 
 object PermissionManager {
     fun checkNotifications(ctx: Context): Boolean {
-        return ContextCompat.checkSelfPermission(ctx,
-            Manifest.permission.POST_NOTIFICATIONS) ==
+        return ContextCompat.checkSelfPermission(
+            ctx,
+            Manifest.permission.POST_NOTIFICATIONS
+        ) ==
                 PackageManager.PERMISSION_GRANTED
     }
 
     fun checkAndRequestNotifications(ctx: Activity): Boolean {
         if (!checkNotifications(ctx)) {
-            Toast.makeText(ctx, ctx.getString(R.string.notification_perm_required), Toast.LENGTH_SHORT).show()
-            ActivityCompat.requestPermissions(
-                ctx,
-                arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-                0
-            )
-            return false
+            return requestNotifications(ctx)
         }
 
         return true
+    }
+
+    fun requestNotifications(ctx: Activity): Boolean {
+        Toast.makeText(ctx, ctx.getString(R.string.notification_perm_required), Toast.LENGTH_SHORT)
+            .show()
+        ActivityCompat.requestPermissions(
+            ctx,
+            arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+            0
+        )
+        return false
     }
 
     fun checkOverlay(ctx: Context): Boolean {
@@ -44,7 +52,8 @@ object PermissionManager {
 
     fun checkAndRequestOverlay(ctx: Activity): Boolean {
         if (!checkOverlay(ctx)) {
-            Toast.makeText(ctx, ctx.getString(R.string.overlay_perm_required), Toast.LENGTH_SHORT).show()
+            Toast.makeText(ctx, ctx.getString(R.string.overlay_perm_required), Toast.LENGTH_SHORT)
+                .show()
             val intent = Intent(
                 Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                 "package:${ctx.packageName}".toUri()
@@ -66,7 +75,11 @@ object PermissionManager {
 
     fun checkAndRequestUsageStats(ctx: Activity): Boolean {
         if (!checkUsageStats(ctx)) {
-            Toast.makeText(ctx, ctx.getString(R.string.usage_stats_perm_required), Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                ctx,
+                ctx.getString(R.string.usage_stats_perm_required),
+                Toast.LENGTH_SHORT
+            ).show()
             val intent = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)
             ctx.startActivity(intent)
             return false
@@ -76,24 +89,26 @@ object PermissionManager {
     }
 
     fun checkCamera(ctx: Context): Boolean {
-        return ContextCompat.checkSelfPermission(ctx,
-            Manifest.permission.CAMERA) ==
+        return ContextCompat.checkSelfPermission(
+            ctx,
+            Manifest.permission.CAMERA
+        ) ==
                 PackageManager.PERMISSION_GRANTED
     }
 
-    fun checkShizuku(): Boolean {
-        return Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
-    }
-
-    fun checkAndRequestShizuku(ctx: Context): Boolean {
-        if (!checkShizuku()) {
-            Toast.makeText(ctx, ctx.getString(R.string.shizuku_perm_required), Toast.LENGTH_SHORT).show()
-            Shizuku.requestPermission(0)
-            return false
-        }
-
-        return true
-    }
+//    fun checkShizuku(): Boolean {
+//        return Shizuku.checkSelfPermission() == PackageManager.PERMISSION_GRANTED
+//    }
+//
+//    fun checkAndRequestShizuku(ctx: Context): Boolean {
+//        if (!checkShizuku()) {
+//            Toast.makeText(ctx, ctx.getString(R.string.shizuku_perm_required), Toast.LENGTH_SHORT).show()
+//            Shizuku.requestPermission(0)
+//            return false
+//        }
+//
+//        return true
+//    }
 
     fun checkExternalStorage(): Boolean {
         return Environment.isExternalStorageManager()
@@ -101,7 +116,11 @@ object PermissionManager {
 
     fun checkAndRequestExternalStorage(ctx: Activity): Boolean {
         if (!checkExternalStorage()) {
-            Toast.makeText(ctx, ctx.getString(R.string.external_storage_perm_required), Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                ctx,
+                ctx.getString(R.string.external_storage_perm_required),
+                Toast.LENGTH_SHORT
+            ).show()
             val intent = Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION)
             intent.data = ("package:" + ctx.packageName).toUri()
             ctx.startActivity(intent)

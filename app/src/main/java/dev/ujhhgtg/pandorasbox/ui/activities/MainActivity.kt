@@ -32,8 +32,16 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.CenterFocusWeak
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.outlined.Cast
+import androidx.compose.material.icons.outlined.Extension
+import androidx.compose.material.icons.outlined.FolderOpen
+import androidx.compose.material.icons.outlined.Keyboard
+import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.PhotoLibrary
+import androidx.compose.material.icons.outlined.PictureInPicture
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
@@ -64,6 +72,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
@@ -82,10 +91,10 @@ import dev.ujhhgtg.pandorasbox.R
 import dev.ujhhgtg.pandorasbox.models.DEFAULT_HOME_URL
 import dev.ujhhgtg.pandorasbox.models.Module
 import dev.ujhhgtg.pandorasbox.models.SettingItem
+import dev.ujhhgtg.pandorasbox.services.CrosshairOverlayService
 import dev.ujhhgtg.pandorasbox.services.DlnaServerService
 import dev.ujhhgtg.pandorasbox.services.DownloadService
 import dev.ujhhgtg.pandorasbox.services.InputMapperService
-import dev.ujhhgtg.pandorasbox.services.OverlayService
 import dev.ujhhgtg.pandorasbox.ui.composables.Text
 import dev.ujhhgtg.pandorasbox.ui.composables.screens.AimBotScreen
 import dev.ujhhgtg.pandorasbox.ui.composables.screens.BrowserScreen
@@ -97,6 +106,7 @@ import dev.ujhhgtg.pandorasbox.ui.composables.screens.GalleryOrganizingScreen
 import dev.ujhhgtg.pandorasbox.ui.composables.screens.InputMapperScreen
 import dev.ujhhgtg.pandorasbox.ui.composables.screens.ModulesScreen
 import dev.ujhhgtg.pandorasbox.ui.composables.screens.PlaygroundScreen
+import dev.ujhhgtg.pandorasbox.ui.composables.screens.XposedScreen
 import dev.ujhhgtg.pandorasbox.ui.composables.settingsGraph
 import dev.ujhhgtg.pandorasbox.ui.theme.AppTheme
 import dev.ujhhgtg.pandorasbox.utils.PermissionManager
@@ -106,12 +116,14 @@ import dev.ujhhgtg.pandorasbox.utils.settings.PrefsRepository
 import dev.ujhhgtg.pandorasbox.utils.settings.PrefsRepository.Companion.bKey
 import dev.ujhhgtg.pandorasbox.utils.settings.PrefsRepository.Companion.iKey
 import dev.ujhhgtg.pandorasbox.utils.tooltip
+import java.util.concurrent.TimeUnit
 
 val LocalTopBarSetter = compositionLocalOf<((@Composable () -> Unit)?) -> Unit> { {} }
 val LocalBottomBarSetter = compositionLocalOf<((@Composable () -> Unit)?) -> Unit> { {} }
 val LocalNavController = compositionLocalOf<NavController> { error("Not provided") }
 val LocalSnackbarHostState = compositionLocalOf<SnackbarHostState> { error("Not provided") }
 val LocalActivityContext = compositionLocalOf<ComponentActivity> { error("Not provided") }
+
 @OptIn(ExperimentalMaterial3Api::class)
 val LocalScrollBehavior = compositionLocalOf<TopAppBarScrollBehavior> { error("Not provided") }
 val LocalPrefsRepository = compositionLocalOf<PrefsRepository> { error("Not provided") }
@@ -148,7 +160,10 @@ class MainActivity : ComponentActivity() {
         val dynamicColors by prefs.rememberPreference(bKey("dynamic_colors"), true)
 
         LaunchedEffect(Unit) {
-            PermissionManager.checkAndRequestNotifications(this@MainActivity)
+            while (!PermissionManager.checkNotifications(this@MainActivity)) {
+                PermissionManager.requestNotifications(this@MainActivity)
+                TimeUnit.SECONDS.sleep(1)
+            }
             toggleService<DownloadService>()
         }
 
@@ -157,7 +172,7 @@ class MainActivity : ComponentActivity() {
                 0 -> isSystemInDarkTheme()
                 1 -> true
                 2 -> false
-                else -> error("does not exist")
+                else -> error("invalid value")
             },
             dynamicColor = dynamicColors
         ) {
@@ -172,9 +187,10 @@ class MainActivity : ComponentActivity() {
             Scaffold(
                 snackbarHost = {
                     val currentRoute = getCurrentRouteAsState(navController)
-                    SnackbarHost(snackbarHostState, modifier = Modifier
-                        .padding(bottom = if (currentRoute == "browser") 91.dp else 0.dp)
-                        .fillMaxWidth(),
+                    SnackbarHost(
+                        snackbarHostState, modifier = Modifier
+                            .padding(bottom = if (currentRoute == "browser") 91.dp else 0.dp)
+                            .fillMaxWidth(),
                         snackbar = {
                             Snackbar(
                                 modifier = Modifier.alpha(0.7f),
@@ -183,9 +199,11 @@ class MainActivity : ComponentActivity() {
                                 contentColor = MaterialTheme.colorScheme.onSurface,
                                 actionColor = MaterialTheme.colorScheme.primary,
                                 actionContentColor = MaterialTheme.colorScheme.primary,
-                                dismissActionContentColor = MaterialTheme.colorScheme.onSurface)
+                                dismissActionContentColor = MaterialTheme.colorScheme.onSurface
+                            )
                         }
-                    ) },
+                    )
+                },
                 topBar = {
                     AnimatedContent(topBarState.value) {
                         it?.invoke() ?: TopAppBar(
@@ -195,11 +213,15 @@ class MainActivity : ComponentActivity() {
                                     navController.previousBackStackEntry != null
                                 }
                                 AnimatedVisibility(canNavigateBack) {
-                                    IconButton(onClick = { navController.popBackStack()
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress) }) {
-                                        Icon(imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                                    IconButton(onClick = {
+                                        navController.popBackStack()
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    }) {
+                                        Icon(
+                                            imageVector = Icons.AutoMirrored.Default.ArrowBack,
                                             contentDescription = stringResource(R.string.back),
-                                            modifier = Modifier.tooltip(stringResource(R.string.back)))
+                                            modifier = Modifier.tooltip(stringResource(R.string.back))
+                                        )
                                     }
                                 }
                             },
@@ -245,32 +267,86 @@ class MainActivity : ComponentActivity() {
                             scaleOut(targetScale = 0.9f) + fadeOut()
                         },
                         builder = {
-                            composable("overlay", deepLinks = listOf(navDeepLink { uriPattern = "pb://overlay" })) { CrosshairOverlayScreen { toggleService<OverlayService>() } }
-                            composable("aim_bot", deepLinks = listOf(navDeepLink { uriPattern = "pb://aim_bot" })) { AimBotScreen() }
-                            composable("input_mapper", deepLinks = listOf(navDeepLink { uriPattern = "pb://input_mapper" })) { InputMapperScreen { toggleService<InputMapperService>() } }
-                            composable("dlna", deepLinks = listOf(navDeepLink { uriPattern = "pb://dlna" })) { DlnaServerScreen { toggleService<DlnaServerService>() } }
-                            composable("file_manager", deepLinks = listOf(navDeepLink { uriPattern = "pb://file_manager" })) { FileManagerScreen("/storage/emulated/0") }
-                            composable("browser", deepLinks = listOf(navDeepLink { uriPattern = "pb://browser" })) { BrowserScreen() }
-                            composable("gallery_organizer", deepLinks = listOf(navDeepLink { uriPattern = "pb://gallery_organizer" })) { GalleryOrganizerScreen() }
-                            composable("gallery_organizer_operation/{folderPath}", arguments = listOf(
-                                navArgument("folderPath") { type = NavType.StringType }
-                            )) { backStackEntry ->
-                                val path = backStackEntry.arguments?.getString("folderPath")?.let { Uri.decode(it) }
+                            composable(
+                                "overlay",
+                                deepLinks = listOf(navDeepLink { uriPattern = "pb://overlay" })
+                            ) { CrosshairOverlayScreen { toggleService<CrosshairOverlayService>() } }
+                            composable(
+                                "aim_bot",
+                                deepLinks = listOf(navDeepLink { uriPattern = "pb://aim_bot" })
+                            ) { AimBotScreen() }
+                            composable(
+                                "input_mapper",
+                                deepLinks = listOf(navDeepLink { uriPattern = "pb://input_mapper" })
+                            ) { InputMapperScreen { toggleService<InputMapperService>() } }
+                            composable(
+                                "dlna",
+                                deepLinks = listOf(navDeepLink { uriPattern = "pb://dlna" })
+                            ) { DlnaServerScreen { toggleService<DlnaServerService>() } }
+                            composable(
+                                "file_manager",
+                                deepLinks = listOf(navDeepLink { uriPattern = "pb://file_manager" })
+                            ) { FileManagerScreen("/storage/emulated/0") }
+                            composable(
+                                "browser",
+                                deepLinks = listOf(navDeepLink { uriPattern = "pb://browser" })
+                            ) { BrowserScreen() }
+                            composable(
+                                "gallery_organizer",
+                                deepLinks = listOf(navDeepLink {
+                                    uriPattern = "pb://gallery_organizer"
+                                })
+                            ) { GalleryOrganizerScreen() }
+                            composable(
+                                "gallery_organizing/{folderPath}",
+                                arguments = listOf(
+                                    navArgument("folderPath") { type = NavType.StringType }
+                                )) { backStackEntry ->
+                                val path = backStackEntry.arguments?.getString("folderPath")
+                                    ?.let { Uri.decode(it) }
                                 if (path != null) {
                                     GalleryOrganizingScreen(folderPath = path)
                                 } else {
-                                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                        Text("Invalid Folder Path", color = androidx.compose.ui.graphics.Color.Red)
+                                    Box(
+                                        Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text("Error: Invalid folder path!", color = Color.Red)
                                     }
                                 }
                             }
-                            composable("playground", deepLinks = listOf(navDeepLink { uriPattern = "pb://playground" })) { PlaygroundScreen() }
-                            composable("modules") { ModulesScreen(navController, modules) { id, labelId, descId, deepLink, iconId ->
-                                this@MainActivity.requestPinnedShortcut(id, getString(labelId), getString(descId), deepLink, iconId)
-                            } }
-                            settingsGraph(navController,
+                            composable(
+                                "xposed",
+                                deepLinks = listOf(navDeepLink {
+                                    uriPattern = "pb://xposed"
+                                })
+                            ) { XposedScreen() }
+                            composable(
+                                "playground",
+                                deepLinks = listOf(navDeepLink { uriPattern = "pb://playground" })
+                            ) { PlaygroundScreen() }
+
+                            composable("modules") {
+                                ModulesScreen(
+                                    navController,
+                                    modules
+                                ) { id, labelId, descId, deepLink, iconId ->
+                                    this@MainActivity.requestPinnedShortcut(
+                                        id,
+                                        getString(labelId),
+                                        getString(descId),
+                                        deepLink,
+                                        iconId
+                                    )
+                                }
+                            }
+                            settingsGraph(
+                                navController,
                                 listOf(
-                                    SettingItem.Action(getString(R.string.clear_data), { showClearDataDialog = true }, icon = { Icon(Icons.Default.Clear, null) },
+                                    SettingItem.Action(
+                                        getString(R.string.clear_data),
+                                        { showClearDataDialog = true },
+                                        icon = { Icon(Icons.Default.Clear, null) },
                                         content = {
                                             var clearCookies by remember { mutableStateOf(true) }
                                             var clearCache by remember { mutableStateOf(true) }
@@ -279,22 +355,62 @@ class MainActivity : ComponentActivity() {
 
                                             if (showClearDataDialog) {
                                                 AlertDialog(
-                                                    onDismissRequest = { showClearDataDialog = false },
+                                                    onDismissRequest = {
+                                                        showClearDataDialog = false
+                                                    },
                                                     title = { Text(R.string.clear_data) },
                                                     text = {
                                                         Column {
-                                                            ListItem(headlineContent = { Text(R.string.cookies) },
-                                                                trailingContent = { Checkbox(checked = clearCookies, onCheckedChange = { clearCookies = it }) },
-                                                                modifier = Modifier.clickable { clearCookies = !clearCookies })
-                                                            ListItem(headlineContent = { Text(R.string.cache) },
-                                                                trailingContent = { Checkbox(checked = clearCache, onCheckedChange = { clearCache = it }) },
-                                                                modifier = Modifier.clickable { clearCache = !clearCache })
-                                                            ListItem(headlineContent = { Text(R.string.local_storage) },
-                                                                trailingContent = { Checkbox(checked = clearLocalStorage, onCheckedChange = { clearLocalStorage = it }) },
-                                                                modifier = Modifier.clickable { clearLocalStorage = !clearLocalStorage })
-                                                            ListItem(headlineContent = { Text(R.string.site_permissions) },
-                                                                trailingContent = { Checkbox(checked = clearPermissions, onCheckedChange = { clearPermissions = it }) },
-                                                                modifier = Modifier.clickable { clearPermissions = !clearPermissions })
+                                                            ListItem(
+                                                                headlineContent = { Text(R.string.cookies) },
+                                                                trailingContent = {
+                                                                    Checkbox(
+                                                                        checked = clearCookies,
+                                                                        onCheckedChange = {
+                                                                            clearCookies = it
+                                                                        })
+                                                                },
+                                                                modifier = Modifier.clickable {
+                                                                    clearCookies = !clearCookies
+                                                                })
+                                                            ListItem(
+                                                                headlineContent = { Text(R.string.cache) },
+                                                                trailingContent = {
+                                                                    Checkbox(
+                                                                        checked = clearCache,
+                                                                        onCheckedChange = {
+                                                                            clearCache = it
+                                                                        })
+                                                                },
+                                                                modifier = Modifier.clickable {
+                                                                    clearCache = !clearCache
+                                                                })
+                                                            ListItem(
+                                                                headlineContent = { Text(R.string.local_storage) },
+                                                                trailingContent = {
+                                                                    Checkbox(
+                                                                        checked = clearLocalStorage,
+                                                                        onCheckedChange = {
+                                                                            clearLocalStorage = it
+                                                                        })
+                                                                },
+                                                                modifier = Modifier.clickable {
+                                                                    clearLocalStorage =
+                                                                        !clearLocalStorage
+                                                                })
+                                                            ListItem(
+                                                                headlineContent = { Text(R.string.site_permissions) },
+                                                                trailingContent = {
+                                                                    Checkbox(
+                                                                        checked = clearPermissions,
+                                                                        onCheckedChange = {
+                                                                            clearPermissions = it
+                                                                        })
+                                                                },
+                                                                modifier = Modifier.clickable {
+                                                                    clearPermissions =
+                                                                        !clearPermissions
+                                                                })
                                                         }
                                                     },
                                                     confirmButton = {
@@ -305,13 +421,17 @@ class MainActivity : ComponentActivity() {
                                                                 cm.flush()
                                                             }
                                                             if (clearCache) {
-                                                                WebView(this@MainActivity).clearCache(true)
+                                                                WebView(this@MainActivity).clearCache(
+                                                                    true
+                                                                )
                                                             }
                                                             if (clearLocalStorage) {
-                                                                WebStorage.getInstance().deleteAllData()
+                                                                WebStorage.getInstance()
+                                                                    .deleteAllData()
                                                             }
                                                             if (clearPermissions) {
-                                                                GeolocationPermissions.getInstance().clearAll()
+                                                                GeolocationPermissions.getInstance()
+                                                                    .clearAll()
                                                             }
                                                             showClearDataDialog = false
                                                         }) {
@@ -319,25 +439,58 @@ class MainActivity : ComponentActivity() {
                                                         }
                                                     },
                                                     dismissButton = {
-                                                        TextButton(onClick = { showClearDataDialog = false }) { Text(R.string.cancel) }
+                                                        TextButton(onClick = {
+                                                            showClearDataDialog = false
+                                                        }) { Text(R.string.cancel) }
                                                     }
                                                 )
                                             }
                                         }),
-                                    SettingItem.Input("Home page URL", defaultValue = DEFAULT_HOME_URL, validator = { it.isNotEmpty() }, icon = { Icon(
-                                        Icons.Default.Home, null) })
-                                ), "browser_settings")
-                            settingsGraph(navController,
+                                    SettingItem.Input(
+                                        "Home page URL",
+                                        defaultValue = DEFAULT_HOME_URL,
+                                        validator = { it.isNotEmpty() },
+                                        icon = {
+                                            Icon(
+                                                Icons.Default.Home, null
+                                            )
+                                        })
+                                ), "browser_settings"
+                            )
+                            settingsGraph(
+                                navController,
                                 listOf(
                                     SettingItem.SubPage(
                                         label = "Appearance",
                                         children = listOf(
-                                            SettingItem.Selection("Dark mode", listOf("System", "On", "Off"), icon = { Icon(painterResource(R.drawable.dark_mode_24px), null) }),
-                                            SettingItem.Toggle("Dynamic colors", true, icon = { Icon(painterResource(R.drawable.colors_24px), null) })
+                                            SettingItem.Selection(
+                                                "Dark mode",
+                                                listOf("System", "On", "Off"),
+                                                icon = {
+                                                    Icon(
+                                                        painterResource(R.drawable.dark_mode_24px),
+                                                        null
+                                                    )
+                                                }),
+                                            SettingItem.Toggle(
+                                                "Dynamic colors",
+                                                true,
+                                                icon = {
+                                                    Icon(
+                                                        painterResource(R.drawable.colors_24px),
+                                                        null
+                                                    )
+                                                })
                                         ),
-                                        icon = { Icon(painterResource(R.drawable.palette_24px), null) }
+                                        icon = {
+                                            Icon(
+                                                painterResource(R.drawable.palette_24px),
+                                                null
+                                            )
+                                        }
                                     )
-                                ), "settings", listOf(navDeepLink { uriPattern = "pb://settings" }))
+                                ), "settings", listOf(navDeepLink { uriPattern = "pb://settings" })
+                            )
                         }
                     )
                 }
@@ -427,7 +580,7 @@ class MainActivity : ComponentActivity() {
             description = R.string.overlay_desc,
             icon = {
                 Icon(
-                    painter = painterResource(R.drawable.picture_in_picture_24px),
+                    Icons.Outlined.PictureInPicture,
                     contentDescription = null
                 )
             },
@@ -438,7 +591,7 @@ class MainActivity : ComponentActivity() {
             description = R.string.aim_bot_desc,
             icon = {
                 Icon(
-                    painter = painterResource(R.drawable.center_focus_strong_24px),
+                    Icons.Default.CenterFocusWeak,
                     contentDescription = null
                 )
             },
@@ -449,7 +602,7 @@ class MainActivity : ComponentActivity() {
             description = R.string.input_mapper_desc,
             icon = {
                 Icon(
-                    painter = painterResource(R.drawable.keyboard_external_input_24px),
+                    Icons.Outlined.Keyboard,
                     contentDescription = null
                 )
             },
@@ -460,7 +613,7 @@ class MainActivity : ComponentActivity() {
             description = R.string.dlna_desc,
             icon = {
                 Icon(
-                    painter = painterResource(R.drawable.cast_24px),
+                    Icons.Outlined.Cast,
                     contentDescription = null
                 )
             },
@@ -471,7 +624,7 @@ class MainActivity : ComponentActivity() {
             description = R.string.file_manager_desc,
             icon = {
                 Icon(
-                    painter = painterResource(R.drawable.folder_open_24px),
+                    Icons.Outlined.FolderOpen,
                     contentDescription = null
                 )
             },
@@ -482,7 +635,7 @@ class MainActivity : ComponentActivity() {
             description = R.string.browser_desc,
             icon = {
                 Icon(
-                    painter = painterResource(R.drawable.language_24px),
+                    Icons.Outlined.Language,
                     contentDescription = null
                 )
             },
@@ -493,18 +646,29 @@ class MainActivity : ComponentActivity() {
             description = R.string.gallery_organizer_desc,
             icon = {
                 Icon(
-                    painter = painterResource(R.drawable.gallery_thumbnail_24px),
+                    Icons.Outlined.PhotoLibrary,
                     contentDescription = null
                 )
             },
             id = "gallery_organizer"
         ),
         Module(
+            label = R.string.xposed,
+            description = R.string.xposed_desc,
+            icon = {
+                Icon(
+                    imageVector = Icons.Outlined.Extension,
+                    contentDescription = null
+                )
+            },
+            id = "xposed"
+        ),
+        Module(
             label = R.string.playground,
             description = R.string.playground_desc,
             icon = {
                 Icon(
-                    painter = painterResource(R.drawable.experiment_24px),
+                    painterResource(R.drawable.experiment_24px),
                     contentDescription = null
                 )
             },
@@ -536,8 +700,7 @@ class MainActivity : ComponentActivity() {
             startForegroundService(Intent(this, T::class.java))
             Log.d(TAG, "started service ${T::class.simpleName}")
             return true
-        }
-        else {
+        } else {
             stopService(Intent(this, T::class.java))
             Log.d(TAG, "stopped service ${T::class.simpleName}")
             return false

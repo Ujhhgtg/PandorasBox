@@ -21,6 +21,8 @@ import kotlinx.coroutines.runBlocking
 
 val Context.prefsDataStore by preferencesDataStore(name = "settings")
 
+private const val TAG: String = "PB.PrefsRepository"
+
 class PrefsRepository(private val context: Context) {
     companion object {
         fun bKey(name: String) = booleanPreferencesKey(name)
@@ -28,8 +30,8 @@ class PrefsRepository(private val context: Context) {
         fun fKey(name: String) = floatPreferencesKey(name)
     }
 
-    fun loadConfigFlowForApp(pkg: String): Flow<OverlayConfig> {
-        Log.d("PB.PrefsRepository", "Loading config flow for package: $pkg")
+    fun loadOverlayConfigFlowForApp(pkg: String): Flow<OverlayConfig> {
+        Log.d(TAG, "Loading config flow for package: $pkg")
 
         return dataStore.data.map { prefs ->
             OverlayConfig(
@@ -49,14 +51,14 @@ class PrefsRepository(private val context: Context) {
     }
 
     suspend fun <T> saveSingleConfig(key: Key<T>, value: T) {
-        Log.d("PB.SettingsRepository", "Saving $value to ${key.name}")
+        Log.d(TAG, "Saving $value to ${key.name}")
         dataStore.edit {
             it[key] = value
         }
     }
 
     suspend fun <T> removeSingleConfig(key: Key<T>) {
-        Log.d("PB.SettingsRepository", "Removing ${key.name}")
+        Log.d(TAG, "Removing ${key.name}")
         dataStore.edit {
             it.remove(key)
         }
@@ -64,10 +66,10 @@ class PrefsRepository(private val context: Context) {
 
     fun hasOverlayConfigOfPackage(packageName: String): Boolean {
         return runBlocking { dataStore.data.map {
-            it.contains(floatPreferencesKey("o_${packageName}_h")) ||
-            it.contains(floatPreferencesKey("o_${packageName}_v")) ||
-            it.contains(intPreferencesKey("o_${packageName}_s")) ||
-            it.contains(intPreferencesKey("o_${packageName}_w"))
+            it.contains(fKey("o_${packageName}_h")) ||
+            it.contains(fKey("o_${packageName}_v")) ||
+            it.contains(iKey("o_${packageName}_s")) ||
+            it.contains(iKey("o_${packageName}_w"))
         }.first() }
     }
 

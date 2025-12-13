@@ -12,19 +12,19 @@ plugins {
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.google.devtools.ksp)
     alias(libs.plugins.google.protobuf)
-    id("kotlin-parcelize")
+    alias(libs.plugins.kotlin.parcelize)
 }
 
 android {
     namespace = "dev.ujhhgtg.pandorasbox"
-    compileSdk = 36
+    compileSdk = libs.versions.targetSdk.get().toInt()
 
     defaultConfig {
         applicationId = "dev.ujhhgtg.pandorasbox"
-        minSdk = 33
-        targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        minSdk = libs.versions.minSdk.get().toInt()
+        targetSdk = libs.versions.targetSdk.get().toInt()
+        versionCode = libs.versions.appVersionCode.get().toInt()
+        versionName = libs.versions.appVersionName.get()
 
         ndk {
             abiFilters.clear()
@@ -76,29 +76,29 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     implementation(libs.androidx.biometric)
     implementation(libs.androidx.compose.foundation)
-    implementation(libs.google.android.material)
-//    implementation(libs.miuix)
+    implementation(libs.android.material)
+    implementation(libs.miuix)
 
     // YukiHookAPI
-//    implementation(libs.yukihookapi.api)
-//    implementation(libs.kavaref.core)
-//    implementation(libs.kavaref.extension)
-//    compileOnly(libs.xposed.api)
-//    ksp(libs.yukihookapi.ksp.xposed)
+    implementation(libs.yukihookapi.api)
+    ksp(libs.yukihookapi.ksp.xposed)
+    implementation(libs.kavaref.core)
+    implementation(libs.kavaref.extension)
+    compileOnly(libs.xposed.api)
 
     // ML Kit
 //    implementation(libs.pose.detection.accurate)
 
     // Shizuku
-    implementation(libs.shizuku.api)
-    implementation(libs.shizuku.provider)
+//    implementation(libs.shizuku.api)
+//    implementation(libs.shizuku.provider)
 
     // CameraX
-    implementation(libs.androidx.camera.core)
-    implementation(libs.androidx.camera.camera2)
-    implementation(libs.androidx.camera.lifecycle)
-    implementation(libs.androidx.camera.view)
-    implementation(libs.androidx.camera.extensions)
+//    implementation(libs.androidx.camera.core)
+//    implementation(libs.androidx.camera.camera2)
+//    implementation(libs.androidx.camera.lifecycle)
+//    implementation(libs.androidx.camera.view)
+//    implementation(libs.androidx.camera.extensions)
 
     // LiteRT
 //    implementation(libs.litert)
@@ -130,10 +130,10 @@ dependencies {
     implementation(libs.protobuf.javalite)
 
     // ExoPlayer
-    implementation(libs.androidx.media3.exoplayer)
-    implementation(libs.androidx.media3.exoplayer.dash)
-    implementation(libs.androidx.media3.ui)
-    implementation(libs.androidx.media3.ui.compose)
+//    implementation(libs.androidx.media3.exoplayer)
+//    implementation(libs.androidx.media3.exoplayer.dash)
+//    implementation(libs.androidx.media3.ui)
+//    implementation(libs.androidx.media3.ui.compose)
 
     // Rhino
     implementation(libs.rhino)
@@ -141,6 +141,9 @@ dependencies {
     // Coil
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
+
+    // Serialization
+    implementation(libs.kotlin.serialization.json)
 }
 
 //protobuf {

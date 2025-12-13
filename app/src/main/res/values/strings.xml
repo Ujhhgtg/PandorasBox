@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Pandora\'s Box</string>
     <string name="show_overlay">Show Overlay</string>
@@ -121,8 +122,11 @@
     <string name="filename_must_not_be_empty">Filename must not be empty!</string>
     <string name="file_already_exists">File already exists!</string>
     <string name="download_complete">Download complete</string>
-    <string name="yan_reader">Yan Reader</string>
-    <string name="yan_reader_resc">Read your favorite novels and books.</string>
     <string name="gallery_organizer_desc">Organize your gallery.</string>
     <string name="gallery_organizer">Gallery Organizer</string>
+    <string name="xposed">Xposed</string>
+    <string name="xposed_desc">Multi-purpose Xposed module.</string>
+    <string name="activated">Activated</string>
+    <string name="_package">Package</string>
+    <string name="select_app">Select app</string>
 </resources>

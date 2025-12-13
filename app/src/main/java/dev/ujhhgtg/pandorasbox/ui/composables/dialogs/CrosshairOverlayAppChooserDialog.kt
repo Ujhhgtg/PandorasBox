@@ -43,6 +43,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import dev.ujhhgtg.pandorasbox.R
 import dev.ujhhgtg.pandorasbox.models.AppInfo
 import dev.ujhhgtg.pandorasbox.ui.composables.LoadingIndicator
+import dev.ujhhgtg.pandorasbox.ui.composables.Text
 import dev.ujhhgtg.pandorasbox.utils.settings.PrefsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -50,7 +51,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-fun PackageChooserDialog(
+fun CrosshairOverlayAppChooserDialog(
     settings: PrefsRepository,
     onDismiss: () -> Unit,
     onSelect: (String) -> Unit
@@ -70,21 +71,20 @@ fun PackageChooserDialog(
                 addCategory(Intent.CATEGORY_LAUNCHER)
             }
             val resolveInfos = pm.queryIntentActivities(intent, 0)
-            val loadedApps = resolveInfos.map {
+            apps = resolveInfos.map {
                 val label = it.loadLabel(pm).toString()
                 val icon = it.loadIcon(pm)
                 val packageName = it.activityInfo.packageName
                 val activity = it.activityInfo.targetActivity
                 AppInfo(label, packageName, activity, icon)
             }.sortedBy { it.label.lowercase() }
-            apps = loadedApps
             isLoading = false
         }
     }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Select App") },
+        title = { Text(R.string.select_app) },
         text = {
             if (isLoading) {
                 LoadingIndicator()
@@ -93,7 +93,7 @@ fun PackageChooserDialog(
                     OutlinedTextField(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
-                        label = { dev.ujhhgtg.pandorasbox.ui.composables.Text(R.string.search) },
+                        label = { Text(R.string.search) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(bottom = 8.dp),
@@ -106,14 +106,15 @@ fun PackageChooserDialog(
                                 it.packageName.contains(searchQuery, ignoreCase = true)
                     }
 
-                    LazyColumn(modifier =
-                        Modifier
-                            .heightIn(max = 500.dp)
-                            .clip(MaterialTheme.shapes.large)
+                    LazyColumn(
+                        modifier =
+                            Modifier
+                                .heightIn(max = 500.dp)
+                                .clip(MaterialTheme.shapes.large)
                     ) {
                         item {
                             ListItem(
-                                headlineContent = { dev.ujhhgtg.pandorasbox.ui.composables.Text(R.string.default_) },
+                                headlineContent = { Text(R.string.default_) },
                                 leadingContent = { Icon(Icons.Default.Settings, null) },
                                 trailingContent = {
                                     if (settings.hasOverlayConfigOfPackage("default")) {
@@ -121,13 +122,14 @@ fun PackageChooserDialog(
                                             imageVector = Icons.Default.Check,
                                             contentDescription = "has config",
                                             tint = Color.Green,
-                                            modifier = Modifier.clip(CircleShape).clickable {
-                                                pkgToClearConfig = "default"
-                                                showClearConfigDialog = true
-                                            }
+                                            modifier = Modifier
+                                                .clip(CircleShape)
+                                                .clickable {
+                                                    pkgToClearConfig = "default"
+                                                    showClearConfigDialog = true
+                                                }
                                         )
-                                    }
-                                    else {
+                                    } else {
                                         Icon(
                                             painter = painterResource(R.drawable.block_24px),
                                             contentDescription = "has no config",
@@ -160,13 +162,14 @@ fun PackageChooserDialog(
                                             imageVector = Icons.Default.Check,
                                             contentDescription = "has config",
                                             tint = Color.Green,
-                                            modifier = Modifier.clip(CircleShape).clickable {
-                                                pkgToClearConfig = app.packageName
-                                                showClearConfigDialog = true
-                                            }
+                                            modifier = Modifier
+                                                .clip(CircleShape)
+                                                .clickable {
+                                                    pkgToClearConfig = app.packageName
+                                                    showClearConfigDialog = true
+                                                }
                                         )
-                                    }
-                                    else {
+                                    } else {
                                         Icon(
                                             painter = painterResource(R.drawable.block_24px),
                                             contentDescription = "has no config",
@@ -184,17 +187,17 @@ fun PackageChooserDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { Text(R.string.cancel) }
         }
     )
 
     if (showClearConfigDialog) {
         AlertDialog(
             onDismissRequest = { showClearConfigDialog = false },
-            title = { Text("Clear Config for App" ) },
+            title = { Text("Clear Config for App") },
             text = { Text("Are you sure you want to clear the config for this app?") },
             confirmButton = {
-                TextButton(onClick = { showClearConfigDialog = false } ) { Text("Cancel") }
+                TextButton(onClick = { showClearConfigDialog = false }) { Text(R.string.cancel) }
                 TextButton(onClick = {
                     scope.launch {
                         settings.removeSingleConfig(floatPreferencesKey("o_${pkgToClearConfig}_h"))
@@ -203,7 +206,7 @@ fun PackageChooserDialog(
                         settings.removeSingleConfig(intPreferencesKey("o_${pkgToClearConfig}_w"))
                     }
                     showClearConfigDialog = false
-                } ) { Text("OK") }
+                }) { Text("OK") }
             }
         )
     }

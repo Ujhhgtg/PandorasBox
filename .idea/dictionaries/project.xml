@@ -2,8 +2,11 @@
   <dictionary name="project">
     <words>
       <w>accessibilityservice</w>
+      <w>actthr</w>
       <w>addr</w>
       <w>aimassistant</w>
+      <w>appinfo</w>
+      <w>ctor</w>
       <w>dcim</w>
       <w>fileprovider</w>
       <w>motionevent</w>
@@ -12,6 +15,10 @@
       <w>shizuku</w>
       <w>snackbar</w>
       <w>ujhhgtg</w>
+      <w>xposeddescription</w>
+      <w>xposedminversion</w>
+      <w>xposedmodule</w>
+      <w>xposedscope</w>
       <w>xposedsharedprefs</w>
     </words>
   </dictionary>

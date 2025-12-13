@@ -33,7 +33,9 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import dev.ujhhgtg.pandorasbox.R
 import dev.ujhhgtg.pandorasbox.models.NormalizedCircle
+import dev.ujhhgtg.pandorasbox.ui.composables.Text
 import kotlin.math.roundToInt
 
 @Composable
@@ -84,7 +86,12 @@ fun InputMapperEditorScreen(
 
                 Box(
                     modifier = Modifier
-                        .offset { IntOffset(offsetX - (circleSizePx / 2), offsetY - (circleSizePx / 2)) }
+                        .offset {
+                            IntOffset(
+                                offsetX - (circleSizePx / 2),
+                                offsetY - (circleSizePx / 2)
+                            )
+                        }
                         .size(64.dp)
                         .pointerInput(circle.key) {
                             detectDragGestures { change, dragAmount ->
@@ -110,7 +117,8 @@ fun InputMapperEditorScreen(
                             }
                             detectTapGestures(
                                 onLongPress = {
-                                    circleList = circleList.toMutableList().apply { removeAt(index) }
+                                    circleList =
+                                        circleList.toMutableList().apply { removeAt(index) }
                                 }
                             )
                         }
@@ -174,7 +182,7 @@ fun InputMapperEditorScreen(
                 },
                 dismissButton = {
                     TextButton(onClick = { showAddDialog = false }) {
-                        Text("Cancel")
+                        Text(R.string.cancel)
                     }
                 }
             )

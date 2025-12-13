@@ -131,7 +131,8 @@ fun FileManagerScreen(rootPath: String) {
 
     fun copy(file: File, target: File) {
         if (file.parentFile == target) {
-            Toast.makeText(ctx, ctx.getString(R.string.source_target_are_same), Toast.LENGTH_SHORT).show()
+            Toast.makeText(ctx, ctx.getString(R.string.source_target_are_same), Toast.LENGTH_SHORT)
+                .show()
             return
         }
 
@@ -144,11 +145,16 @@ fun FileManagerScreen(rootPath: String) {
 
     fun move(file: File, target: File) {
         if (file.parentFile == target) {
-            Toast.makeText(ctx, ctx.getString(R.string.source_target_are_same), Toast.LENGTH_SHORT).show()
+            Toast.makeText(ctx, ctx.getString(R.string.source_target_are_same), Toast.LENGTH_SHORT)
+                .show()
             return
         }
 
-        Files.move(file.toPath(), target.toPath().resolve(file.name), StandardCopyOption.REPLACE_EXISTING)
+        Files.move(
+            file.toPath(),
+            target.toPath().resolve(file.name),
+            StandardCopyOption.REPLACE_EXISTING
+        )
     }
 
     fun curPath(): File {
@@ -184,11 +190,14 @@ fun FileManagerScreen(rootPath: String) {
                     subtitleContentColor = colors.onSecondaryContainer
                 ),
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack()
+                    IconButton(onClick = {
+                        navController.popBackStack()
                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                     }) {
-                        Icon(Icons.AutoMirrored.Default.ArrowBack,
-                            stringResource(R.string.back))
+                        Icon(
+                            Icons.AutoMirrored.Default.ArrowBack,
+                            stringResource(R.string.back)
+                        )
                     }
                 },
                 title = {
@@ -197,7 +206,8 @@ fun FileManagerScreen(rootPath: String) {
                         verticalArrangement = Arrangement.Center
                     ) {
                         var showEditPathDialog by remember { mutableStateOf(false) }
-                        Text(text = curPath().absolutePath,
+                        Text(
+                            text = curPath().absolutePath,
                             style = MaterialTheme.typography.labelLarge,
                             modifier = Modifier.clickable { showEditPathDialog = true })
 
@@ -206,18 +216,26 @@ fun FileManagerScreen(rootPath: String) {
                                 title = { Text(R.string.edit_path) },
                                 textFieldLabel = { Text(R.string.enter_a_path) },
                                 value = curPath().absolutePath,
-                                onValueChange = { if (leftIsActive) leftPath = File(it) else rightPath =
-                                    File(it) },
+                                onValueChange = {
+                                    if (leftIsActive) leftPath = File(it) else rightPath =
+                                        File(it)
+                                },
                                 onParseValue = { it },
                                 onDismissRequest = { showEditPathDialog = false },
                                 onValidate = { null }
                             )
                         }
 
-                        Text(text =
+                        Text(
+                            text =
                                 "${stringResource(R.string.directory)}: ${files?.filter { it.isDirectory }?.size} " +
-                                "${stringResource(R.string.file)}: ${files?.filter { !it.isDirectory }?.size} " +
-                                "${stringResource(R.string.storage)}: ${FileUtils.formatBytes(ctx, used)}/${FileUtils.formatBytes(ctx, total)}",
+                                        "${stringResource(R.string.file)}: ${files?.filter { !it.isDirectory }?.size} " +
+                                        "${stringResource(R.string.storage)}: ${
+                                            FileUtils.formatBytes(
+                                                ctx,
+                                                used
+                                            )
+                                        }/${FileUtils.formatBytes(ctx, total)}",
                             style = MaterialTheme.typography.labelSmall
                         )
                     }
@@ -228,7 +246,8 @@ fun FileManagerScreen(rootPath: String) {
                         Icon(Icons.Default.MoreVert, R.string.menu)
                     }
 
-                    DropdownMenu(expanded = showMenu,
+                    DropdownMenu(
+                        expanded = showMenu,
                         onDismissRequest = { showMenu = false }) {
                         DropdownMenuItem(
                             leadingIcon = { Icon(Icons.Default.Refresh, null) },
@@ -254,9 +273,11 @@ fun FileManagerScreen(rootPath: String) {
     LaunchedEffect(Unit) {
         setBottomBar {
             BottomAppBar(modifier = Modifier.height(48.dp)) {
-                Row(Modifier.fillMaxSize(),
+                Row(
+                    Modifier.fillMaxSize(),
                     horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically) {
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     var showCreateDialog by remember { mutableStateOf(false) }
                     IconButton(onClick = { showCreateDialog = true }) {
                         Icon(Icons.Default.Add, R.string.create)
@@ -264,7 +285,8 @@ fun FileManagerScreen(rootPath: String) {
                     var fileName by remember { mutableStateOf("") }
                     var errorMessage by remember { mutableStateOf<String?>(null) }
                     if (showCreateDialog) {
-                        AlertDialog(onDismissRequest = { showCreateDialog = false },
+                        AlertDialog(
+                            onDismissRequest = { showCreateDialog = false },
                             title = { Text(R.string.create) },
                             text = {
                                 Column {
@@ -282,36 +304,42 @@ fun FileManagerScreen(rootPath: String) {
                                     }
                                 }
                             },
-                            dismissButton = { TextButton(onClick = {
-                                if (fileName.isEmpty()) {
-                                    errorMessage = ctx.getString(R.string.filename_must_not_be_empty)
-                                    return@TextButton
-                                }
+                            dismissButton = {
+                                TextButton(onClick = {
+                                    if (fileName.isEmpty()) {
+                                        errorMessage =
+                                            ctx.getString(R.string.filename_must_not_be_empty)
+                                        return@TextButton
+                                    }
 
-                                if (curPath().resolve(fileName).exists()) {
-                                    errorMessage = ctx.getString(R.string.file_already_exists)
-                                    return@TextButton
-                                }
+                                    if (curPath().resolve(fileName).exists()) {
+                                        errorMessage = ctx.getString(R.string.file_already_exists)
+                                        return@TextButton
+                                    }
 
-                                curPath().resolve(fileName).createNewFile()
-                                showCreateDialog = false
-                                fileName = ""
-                            }) { Text(R.string.file) } },
-                            confirmButton = { TextButton(onClick = {
-                                if (fileName.isEmpty()) {
-                                    errorMessage = ctx.getString(R.string.filename_must_not_be_empty)
-                                    return@TextButton
-                                }
+                                    curPath().resolve(fileName).createNewFile()
+                                    showCreateDialog = false
+                                    fileName = ""
+                                }) { Text(R.string.file) }
+                            },
+                            confirmButton = {
+                                TextButton(onClick = {
+                                    if (fileName.isEmpty()) {
+                                        errorMessage =
+                                            ctx.getString(R.string.filename_must_not_be_empty)
+                                        return@TextButton
+                                    }
 
-                                if (curPath().resolve(fileName).exists()) {
-                                    errorMessage = ctx.getString(R.string.file_already_exists)
-                                    return@TextButton
-                                }
+                                    if (curPath().resolve(fileName).exists()) {
+                                        errorMessage = ctx.getString(R.string.file_already_exists)
+                                        return@TextButton
+                                    }
 
-                                Files.createDirectory(curPath().resolve(fileName).toPath())
-                                showCreateDialog = false
-                                fileName = ""
-                            }) { Text(R.string.directory) } })
+                                    Files.createDirectory(curPath().resolve(fileName).toPath())
+                                    showCreateDialog = false
+                                    fileName = ""
+                                }) { Text(R.string.directory) }
+                            })
                     }
                 }
             }
@@ -396,23 +424,49 @@ fun FileManagerScreen(rootPath: String) {
                 .fillMaxWidth(0.5f)
                 .height(shadowWidthDp)
                 .offset { if (leftIsActive) IntOffset(dividerX.toInt(), 0) else IntOffset(0, 0) }
-                .background(Brush.verticalGradient(colors = listOf(Color.Black.copy(alpha = 0.2f), Color.Transparent)))
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Black.copy(alpha = 0.2f),
+                            Color.Transparent
+                        )
+                    )
+                )
         )
         Box(
             modifier = Modifier
                 .fillMaxHeight()
                 .width(shadowWidthDp)
                 .offset { IntOffset(dividerX.toInt(), 0) }
-                .background(Brush.horizontalGradient(colors =
-                    if (leftIsActive) listOf(Color.Black.copy(alpha = 0.2f), Color.Transparent)
-                    else listOf(Color.Transparent, Color.Black.copy(alpha = 0.2f))))
+                .background(
+                    Brush.horizontalGradient(
+                        colors =
+                            if (leftIsActive) listOf(
+                                Color.Black.copy(alpha = 0.2f),
+                                Color.Transparent
+                            )
+                            else listOf(Color.Transparent, Color.Black.copy(alpha = 0.2f))
+                    )
+                )
         )
         Box(
             modifier = Modifier
                 .fillMaxWidth(0.5f)
                 .height(shadowWidthDp)
-                .offset { if (leftIsActive) IntOffset(0, (totalHeight - shadowWidth).toInt()) else IntOffset(dividerX.toInt(), (totalHeight - shadowWidth).toInt()) }
-                .background(Brush.verticalGradient(colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.2f))))
+                .offset {
+                    if (leftIsActive) IntOffset(
+                        0,
+                        (totalHeight - shadowWidth).toInt()
+                    ) else IntOffset(dividerX.toInt(), (totalHeight - shadowWidth).toInt())
+                }
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            Color.Black.copy(alpha = 0.2f)
+                        )
+                    )
+                )
         )
     }
 
@@ -491,7 +545,8 @@ fun FileManagerPane(
     onMove: (File) -> Unit
 ) {
     fun getFiles(path: File): List<File> {
-        return path.listFiles()?.sortedWith(compareBy({ !it.isDirectory }, { it.name })) ?: emptyList()
+        return path.listFiles()?.sortedWith(compareBy({ !it.isDirectory }, { it.name }))
+            ?: emptyList()
     }
 
     val pullToRefreshState = rememberPullToRefreshState()
@@ -640,8 +695,7 @@ fun FileManagerPane(
                                     painter = R.drawable.folder_open_24px,
                                     contentDescription = stringResource(R.string.directory)
                                 )
-                            }
-                            else if (file.isFile) {
+                            } else if (file.isFile) {
                                 Icon(
                                     modifier = Modifier.size(20.dp),
                                     painter = R.drawable.docs_24px,
@@ -672,7 +726,9 @@ fun FileManagerPane(
                         )
 
                         if (showOpenFileDialog) {
-                            OpenItemDialog(OpenableItem.FileItem(file)) { showOpenFileDialog = false }
+                            OpenItemDialog(OpenableItem.FileItem(file)) {
+                                showOpenFileDialog = false
+                            }
                         } else if (showRenameFileDialog) {
                             RenameFileDialog(
                                 file = file,
@@ -827,7 +883,7 @@ private fun RenameFileDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(R.string.cancel)
             }
         }
     )

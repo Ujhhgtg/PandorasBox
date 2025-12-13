@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import dev.ujhhgtg.pandorasbox.R
-import dev.ujhhgtg.pandorasbox.services.OverlayService
+import dev.ujhhgtg.pandorasbox.services.CrosshairOverlayService
 import dev.ujhhgtg.pandorasbox.ui.activities.LocalActivityContext
 import dev.ujhhgtg.pandorasbox.ui.activities.LocalPrefsRepository
 import dev.ujhhgtg.pandorasbox.ui.activities.LocalScrollBehavior
@@ -31,7 +31,7 @@ import dev.ujhhgtg.pandorasbox.ui.composables.DefaultColumn
 import dev.ujhhgtg.pandorasbox.ui.composables.NumberAdjuster
 import dev.ujhhgtg.pandorasbox.ui.composables.OffsetAdjuster
 import dev.ujhhgtg.pandorasbox.ui.composables.Text
-import dev.ujhhgtg.pandorasbox.ui.composables.dialogs.PackageChooserDialog
+import dev.ujhhgtg.pandorasbox.ui.composables.dialogs.CrosshairOverlayAppChooserDialog
 import dev.ujhhgtg.pandorasbox.utils.PermissionManager
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -105,7 +105,7 @@ fun CrosshairOverlayScreen(toggleService: () -> Unit) {
                 contentDescription = null
             )
             ButtonSpacer()
-            Text("Package: $selectedPackage")
+            Text("${stringResource(R.string._package)}: $selectedPackage")
         }
         Spacer(Modifier.height(24.dp))
         OffsetAdjuster(
@@ -156,7 +156,7 @@ fun CrosshairOverlayScreen(toggleService: () -> Unit) {
 
             toggleService()
         }) {
-            if (!OverlayService.isRunning.value) {
+            if (!CrosshairOverlayService.isRunning.value) {
                 Icon(painterResource(R.drawable.play_arrow_24px), null)
                 ButtonSpacer()
                 Text(R.string.show_overlay)
@@ -169,7 +169,7 @@ fun CrosshairOverlayScreen(toggleService: () -> Unit) {
     }
 
     if (showPackageDialog) {
-        PackageChooserDialog(
+        CrosshairOverlayAppChooserDialog(
             settings = settings,
             onDismiss = { showPackageDialog = false },
             onSelect = {

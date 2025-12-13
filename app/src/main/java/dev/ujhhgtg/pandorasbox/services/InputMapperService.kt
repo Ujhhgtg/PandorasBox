@@ -49,8 +49,8 @@ class InputMapperService : Service(), LifecycleOwner {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (!PermissionManager.checkNotifications(this) ||
-            !PermissionManager.checkOverlay(this) ||
-            !PermissionManager.checkShizuku()) {
+            !PermissionManager.checkOverlay(this)
+        ) {
             Log.d(TAG, "required permissions are not granted")
             throw IllegalAccessException("required permissions are not granted")
         }
@@ -80,8 +80,7 @@ class InputMapperService : Service(), LifecycleOwner {
         val layoutParams = WindowManager.LayoutParams(
             WindowManager.LayoutParams.WRAP_CONTENT,
             WindowManager.LayoutParams.WRAP_CONTENT,
-            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-            ,
+            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY,
             WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
                     WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN or
                     WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
@@ -110,6 +109,7 @@ class InputMapperService : Service(), LifecycleOwner {
                                     val y = json.getInt("y")
                                     simulateTap(x, y)
                                 }
+
                                 "swipe" -> {
                                     val x1 = json.getInt("x1")
                                     val y1 = json.getInt("y1")
@@ -118,17 +118,20 @@ class InputMapperService : Service(), LifecycleOwner {
                                     val duration = json.optInt("duration", 100)
                                     simulateSwipe(x1, y1, x2, y2, duration)
                                 }
+
                                 "hold" -> {
                                     val x = json.getInt("x")
                                     val y = json.getInt("y")
                                     val duration = json.getInt("duration")
                                     simulateSwipe(x, y, x, y, duration)
                                 }
+
                                 "press" -> {
                                     val x = json.getInt("x")
                                     val y = json.getInt("y")
                                     simulatePress(x, y)
                                 }
+
                                 "release" -> {
                                     val x = json.getIntOrElse("x", null)
                                     val y = json.getIntOrElse("y", null)

@@ -85,7 +85,8 @@ import kotlin.math.roundToInt
 
 private const val TAG: String = "PB.GalleryOrganizer"
 
-private val IMAGE_FILE_EXTENSIONS: List<String> = listOf("jpg", "jpeg", "png", "webp", "heic", "heif", "gif", "bmp", "tiff", "dng")
+private val IMAGE_FILE_EXTENSIONS: List<String> =
+    listOf("jpg", "jpeg", "png", "webp", "heic", "heif", "gif", "bmp", "tiff", "dng")
 
 @Parcelize
 data class MediaItem(
@@ -177,7 +178,8 @@ fun GalleryOrganizerScreen() {
         } else {
             permissionDenied = true
             isLoading = false
-            Toast.makeText(context, "Storage access required to list folders.", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, "Storage access required to list folders.", Toast.LENGTH_LONG)
+                .show()
         }
     }
 
@@ -199,7 +201,10 @@ fun GalleryOrganizerScreen() {
         PermissionDeniedContent(permissionLauncher, readPermission)
     } else if (folders.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("No folders containing images found.", color = MaterialTheme.colorScheme.onBackground)
+            Text(
+                "No folders containing images found.",
+                color = MaterialTheme.colorScheme.onBackground
+            )
         }
     } else {
         LazyColumn(
@@ -221,7 +226,7 @@ fun GalleryOrganizerScreen() {
                         .clip(RoundedCornerShape(12.dp))
                         .background(MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
                         .clickable {
-                            navController.navigate("gallery_organizer_operation/${Uri.encode(folder.absolutePath)}")
+                            navController.navigate("gallery_organizing/${Uri.encode(folder.absolutePath)}")
                         },
                     leadingContent = {
                         Icon(
@@ -230,7 +235,11 @@ fun GalleryOrganizerScreen() {
                         )
                     },
                     headlineContent = {
-                        Text(folder.name, color = MaterialTheme.colorScheme.onBackground, fontWeight = FontWeight.SemiBold)
+                        Text(
+                            folder.name,
+                            color = MaterialTheme.colorScheme.onBackground,
+                            fontWeight = FontWeight.SemiBold
+                        )
                     },
                     supportingContent = {
                         Text(
@@ -437,11 +446,16 @@ fun ImageCard(mediaItem: MediaItem, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun PermissionDeniedContent(permissionLauncher: ActivityResultLauncher<String>, permission: String) {
+fun PermissionDeniedContent(
+    permissionLauncher: ActivityResultLauncher<String>,
+    permission: String
+) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
-        modifier = Modifier.fillMaxSize().padding(32.dp)
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp)
     ) {
         Text(
             "Storage Access Required",
@@ -511,8 +525,7 @@ fun ImageCardContent(mediaItem: MediaItem, targetSizeDp: Int? = null) {
                 .size(targetSizePx)
                 .build()
         )
-    }
-    else {
+    } else {
         painter = rememberAsyncImagePainter(
             ImageRequest.Builder(LocalContext.current)
                 .data(mediaItem.file)

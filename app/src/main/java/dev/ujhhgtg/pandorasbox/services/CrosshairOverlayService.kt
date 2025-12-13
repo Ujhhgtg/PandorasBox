@@ -31,7 +31,7 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-class OverlayService : Service() {
+class CrosshairOverlayService : Service() {
     private lateinit var windowManager: WindowManager
     private lateinit var settings: PrefsRepository
 
@@ -55,7 +55,8 @@ class OverlayService : Service() {
 
         if (!PermissionManager.checkNotifications(this) ||
             !PermissionManager.checkOverlay(this) ||
-            !PermissionManager.checkUsageStats(this)) {
+            !PermissionManager.checkUsageStats(this)
+        ) {
             Log.d(TAG, "required permissions are not granted")
             throw IllegalAccessException("required permissions are not granted")
         }
@@ -143,7 +144,7 @@ class OverlayService : Service() {
         Log.d(TAG, "Subscribing to config for package: $packageName")
         configJob?.cancel()
         configJob = scope.launch {
-            settings.loadConfigFlowForApp(packageName).collect { conf ->
+            settings.loadOverlayConfigFlowForApp(packageName).collect { conf ->
                 applyConfig(conf.hOffset, conf.vOffset, conf.dotSize, conf.lineWidth)
             }
         }
@@ -169,27 +170,33 @@ class OverlayService : Service() {
 
     private fun convertOffsetToPixels(offset: Float, axis: String): Int {
         val metrics = resources.displayMetrics
-        val maxOffsetPx = if (axis == "horizontal") metrics.widthPixels / 2 else metrics.heightPixels / 2
+        val maxOffsetPx =
+            if (axis == "horizontal") metrics.widthPixels / 2 else metrics.heightPixels / 2
         return (offset * maxOffsetPx).toInt()
     }
 
-    private fun applyConfig(hOffset: Float? = null, vOffset: Float? = null, dotSize: Int? = null, lineWidth: Int? = null) {
+    private fun applyConfig(
+        hOffset: Float? = null,
+        vOffset: Float? = null,
+        dotSize: Int? = null,
+        lineWidth: Int? = null
+    ) {
         Log.d(TAG, "Applying config $hOffset $vOffset $dotSize $lineWidth")
 
         for (view in arrayOf(dot, hLine, vLine)) {
             if (hOffset != null)
-                (view.layoutParams as WindowManager.LayoutParams).x = convertOffsetToPixels(hOffset, axis = "horizontal")
+                (view.layoutParams as WindowManager.LayoutParams).x =
+                    convertOffsetToPixels(hOffset, axis = "horizontal")
             if (vOffset != null)
-                (view.layoutParams as WindowManager.LayoutParams).y = convertOffsetToPixels(vOffset, axis = "vertical")
+                (view.layoutParams as WindowManager.LayoutParams).y =
+                    convertOffsetToPixels(vOffset, axis = "vertical")
 
             if (view == dot && dotSize != null) {
                 (view.layoutParams as WindowManager.LayoutParams).width = dotSize
                 (view.layoutParams as WindowManager.LayoutParams).height = dotSize
-            }
-            else if (view == hLine && lineWidth != null) {
+            } else if (view == hLine && lineWidth != null) {
                 (view.layoutParams as WindowManager.LayoutParams).height = lineWidth
-            }
-            else if (view == vLine && lineWidth != null) {
+            } else if (view == vLine && lineWidth != null) {
                 (view.layoutParams as WindowManager.LayoutParams).width = lineWidth
             }
 

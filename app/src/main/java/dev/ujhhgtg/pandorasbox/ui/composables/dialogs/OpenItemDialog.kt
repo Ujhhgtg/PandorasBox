@@ -7,10 +7,9 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
-import androidx.appcompat.content.res.AppCompatResources
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,7 +22,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -49,18 +47,19 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.FileProvider
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.drawable.toBitmap
 import androidx.core.net.toUri
 import dev.ujhhgtg.pandorasbox.R
 import dev.ujhhgtg.pandorasbox.enums.IntentAction
+import dev.ujhhgtg.pandorasbox.models.AppInfo
+import dev.ujhhgtg.pandorasbox.models.OpenableItem
+import dev.ujhhgtg.pandorasbox.ui.composables.LoadingIndicator
+import dev.ujhhgtg.pandorasbox.ui.composables.Text
 import dev.ujhhgtg.pandorasbox.utils.tooltip
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import androidx.core.content.FileProvider
-import dev.ujhhgtg.pandorasbox.models.OpenableItem
-import androidx.core.graphics.createBitmap
-import androidx.core.graphics.drawable.toBitmap
-import dev.ujhhgtg.pandorasbox.models.AppInfo
-import dev.ujhhgtg.pandorasbox.ui.composables.LoadingIndicator
 
 fun buildOpenIntent(
     item: OpenableItem,
@@ -76,11 +75,13 @@ fun buildOpenIntent(
                     setDataAndType(uri, ctx.contentResolver.getType(uri))
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
+
                 IntentAction.SEND -> Intent(Intent.ACTION_SEND).apply {
                     type = ctx.contentResolver.getType(uri) ?: "*/*"
                     putExtra(Intent.EXTRA_STREAM, uri)
                     addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                 }
+
                 IntentAction.SEND_MULTIPLE -> Intent(Intent.ACTION_SEND_MULTIPLE).apply {
                     type = ctx.contentResolver.getType(uri) ?: "*/*"
                     putParcelableArrayListExtra(Intent.EXTRA_STREAM, arrayListOf(uri))
@@ -97,6 +98,7 @@ fun buildOpenIntent(
                     type = "text/plain"
                     putExtra(Intent.EXTRA_TEXT, item.url)
                 }
+
                 IntentAction.SEND_MULTIPLE -> Intent(Intent.ACTION_SEND_MULTIPLE).apply {
                     type = "text/plain"
                     putStringArrayListExtra(Intent.EXTRA_TEXT, arrayListOf(item.url))
@@ -112,7 +114,12 @@ fun launchItemIntent(ctx: Context, item: OpenableItem, mode: IntentAction) {
     ctx.startActivity(Intent.createChooser(buildOpenIntent(item, mode, ctx = ctx), "Open with"))
 }
 
-fun launchItemIntentWithPackage(ctx: Context, item: OpenableItem, mode: IntentAction, packageName: String) {
+fun launchItemIntentWithPackage(
+    ctx: Context,
+    item: OpenableItem,
+    mode: IntentAction,
+    packageName: String
+) {
     ctx.startActivity(buildOpenIntent(item, mode, packageName, ctx))
 }
 
@@ -122,24 +129,23 @@ fun OpenItemDialog(
     onDismiss: () -> Unit
 ) {
     val ctx = LocalContext.current
-    var openMode by remember { mutableStateOf(IntentAction.VIEW) }
-    var apps by remember { mutableStateOf(listOf<AppInfo>()) }
     var isLoading by remember { mutableStateOf(true) }
+    var apps by remember { mutableStateOf(listOf<AppInfo>()) }
+    var openMode by remember { mutableStateOf(IntentAction.VIEW) }
     var searchQuery by remember { mutableStateOf("") }
 
     LaunchedEffect(openMode) {
-        isLoading = true
         withContext(Dispatchers.IO) {
             val pm = ctx.packageManager
-            val launcherIntent = Intent(Intent.ACTION_MAIN, null).apply {
+            val intent = Intent(Intent.ACTION_MAIN, null).apply {
                 addCategory(Intent.CATEGORY_LAUNCHER)
             }
-            val launcherResolveInfos = pm.queryIntentActivities(launcherIntent, 0).associate { it.activityInfo.packageName to it.loadIcon(pm) }
+            pm.queryIntentActivities(intent, 0)
             apps = pm.queryIntentActivities(buildOpenIntent(item, openMode, ctx = ctx), 0).map {
                 val label = it.loadLabel(pm).toString()
+                val icon = it.loadIcon(pm)
                 val packageName = it.activityInfo.packageName
-                val icon = launcherResolveInfos.getOrDefault(packageName, null) ?: AppCompatResources.getDrawable(ctx, R.drawable.block_24px)!!
-                val activity = it.activityInfo.targetActivity
+                val activity = it.activityInfo.parentActivityName
                 AppInfo(label, packageName, activity, icon)
             }.sortedBy { it.label.lowercase() }
             isLoading = false
@@ -150,7 +156,7 @@ fun OpenItemDialog(
         onDismissRequest = onDismiss,
         title = {
             DialogTitle(
-                title = when(item) {
+                title = when (item) {
                     is OpenableItem.FileItem -> stringResource(R.string.open_file)
                     is OpenableItem.UrlItem -> stringResource(R.string.open_url)
                 },
@@ -174,7 +180,7 @@ fun OpenItemDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { Text(R.string.cancel) }
         }
     )
 }
@@ -222,7 +228,7 @@ private fun SearchField(query: String, onQueryChange: (String) -> Unit) {
     OutlinedTextField(
         value = query,
         onValueChange = onQueryChange,
-        label = { dev.ujhhgtg.pandorasbox.ui.composables.Text(R.string.search) },
+        label = { Text(R.string.search) },
         modifier = Modifier.fillMaxWidth(),
         singleLine = true,
         keyboardOptions = KeyboardOptions.Default.copy(imeAction = ImeAction.Search)
@@ -257,14 +263,14 @@ fun AppList(
                     ) {
                         Text(app.packageName, fontSize = 12.sp)
                         if (app.activity != null) Text(app.activity, fontSize = 12.sp)
-                    } },
+                    }
+                },
                 leadingContent = {
-                    Icon(
+                    Image(
                         bitmap = app.icon.toBitmap().asImageBitmap(),
                         contentDescription = null,
                         modifier = Modifier.size(40.dp)
                     )
-//                    ResolveInfoAppIcon(app)
                 },
                 modifier = Modifier.clickable { onAppClick(app.packageName) }
             )
@@ -278,17 +284,6 @@ fun Drawable.toBitmapSafe(sizePx: Int): Bitmap {
     this.setBounds(0, 0, canvas.width, canvas.height)
     this.draw(canvas)
     return bitmap
-}
-
-@Composable
-fun ResolveInfoAppIcon(app: AppInfo, size: Dp = 40.dp) {
-    val sizePx = 40.dp.toPx()
-    val iconBitmap = remember(app) { app.icon.toBitmapSafe(sizePx.toInt()) }
-    Icon(
-        bitmap = iconBitmap.asImageBitmap(),
-        contentDescription = null,
-        modifier = Modifier.size(size)
-    )
 }
 
 @Composable

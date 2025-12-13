@@ -1,4 +1,5 @@
 package dev.ujhhgtg.pandorasbox.ui.theme
+
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
@@ -254,7 +255,7 @@ val unspecified_scheme = ColorFamily(
 fun AppTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = true,
-    content: @Composable() () -> Unit
+    content: @Composable () -> Unit
 ) {
   val colorScheme = when {
       dynamicColor -> {

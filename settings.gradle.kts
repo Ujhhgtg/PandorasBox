@@ -13,12 +13,14 @@ pluginManagement {
         gradlePluginPortal()
     }
 }
+
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
     repositories {
         google()
         mavenCentral()
-//        maven { url = uri("https://api.xposed.info/") }
+        maven { url = uri("https://api.xposed.info/") }
+        maven("https://raw.githubusercontent.com/HighCapable/maven-repository/main/repository/releases")
 //        maven { url = uri("https://maven.mozilla.org/maven2/") }
     }
 }

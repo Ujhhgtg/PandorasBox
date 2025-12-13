@@ -16,7 +16,7 @@ import dev.ujhhgtg.pandorasbox.utils.PermissionManager
 import dev.ujhhgtg.pandorasbox.utils.ServiceLocator
 import dev.ujhhgtg.pandorasbox.utils.settings.PrefsRepository
 
-class AimBotService: Service() {
+class AimBotService : Service() {
     private lateinit var settings: PrefsRepository
 
     companion object {
@@ -30,8 +30,8 @@ class AimBotService: Service() {
         super.onCreate()
 
         if (!PermissionManager.checkNotifications(this) ||
-            !PermissionManager.checkOverlay(this) ||
-            !PermissionManager.checkShizuku()) {
+            !PermissionManager.checkOverlay(this)
+        ) {
             Log.d(TAG, "required permissions are not granted")
             throw IllegalAccessException("required permissions are not granted")
         }

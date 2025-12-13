@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.dp
+import dev.ujhhgtg.pandorasbox.R
 import kotlin.math.max
 import kotlin.math.min
 
@@ -46,12 +47,12 @@ fun ColorChooserDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
             TextButton(onClick = { onColorSelected(color.copy(alpha = alpha)) }) {
-                Text("OK")
+                Text(R.string.ok)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(R.string.cancel)
             }
         },
         title = { Text("Choose Color") },

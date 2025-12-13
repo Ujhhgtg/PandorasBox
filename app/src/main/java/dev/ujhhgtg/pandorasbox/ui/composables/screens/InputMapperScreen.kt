@@ -16,7 +16,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dev.ujhhgtg.pandorasbox.R
 import dev.ujhhgtg.pandorasbox.services.InputMapperService
@@ -47,8 +46,6 @@ fun InputMapperScreen(toggleService: () -> Unit) {
             if (!PermissionManager.checkAndRequestNotifications(ctx))
                 return@Button
             if (!PermissionManager.checkAndRequestOverlay(ctx))
-                return@Button
-            if (!PermissionManager.checkAndRequestShizuku(ctx))
                 return@Button
 
             val intent = Intent(ctx, InputMapperService::class.java)
