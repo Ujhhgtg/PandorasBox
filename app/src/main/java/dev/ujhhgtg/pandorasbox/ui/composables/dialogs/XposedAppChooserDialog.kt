@@ -1,6 +1,6 @@
 package dev.ujhhgtg.pandorasbox.ui.composables.dialogs
 
-import android.content.Intent
+import android.content.pm.PackageManager
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -38,21 +38,18 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.graphics.drawable.toBitmap
+import com.highcapable.yukihookapi.hook.factory.prefs
 import dev.ujhhgtg.pandorasbox.R
 import dev.ujhhgtg.pandorasbox.models.AppInfo
 import dev.ujhhgtg.pandorasbox.ui.composables.widgets.LoadingIndicator
 import dev.ujhhgtg.pandorasbox.ui.composables.widgets.Text
-import dev.ujhhgtg.pandorasbox.utils.settings.PrefsRepository
-import dev.ujhhgtg.pandorasbox.utils.settings.PrefsRepository.Companion.fKey
-import dev.ujhhgtg.pandorasbox.utils.settings.PrefsRepository.Companion.iKey
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-fun CrosshairOverlayAppChooserDialog(
-    settings: PrefsRepository,
+fun XposedAppChooserDialog(
     onDismiss: () -> Unit,
     onSelect: (String) -> Unit
 ) {
@@ -60,23 +57,24 @@ fun CrosshairOverlayAppChooserDialog(
     var isLoading by remember { mutableStateOf(true) }
     var apps by remember { mutableStateOf(listOf<AppInfo>()) }
     var searchQuery by remember { mutableStateOf("") }
-    var pkgToClearConfig by remember { mutableStateOf("") }
-    var showClearConfigDialog by remember { mutableStateOf(false) }
+    var pkgToClearConfig by remember { mutableStateOf<String?>(null) }
     val scope by remember { mutableStateOf(CoroutineScope(Dispatchers.Main)) }
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
             val pm = ctx.packageManager
-            val intent = Intent(Intent.ACTION_MAIN, null).apply {
-                addCategory(Intent.CATEGORY_LAUNCHER)
-            }
-            val resolveInfos = pm.queryIntentActivities(intent, 0)
-            apps = resolveInfos.map {
-                val label = it.loadLabel(pm).toString()
-                val icon = it.loadIcon(pm)
-                val packageName = it.activityInfo.packageName
-                val activity = it.activityInfo.targetActivity
-                AppInfo(label, packageName, activity, icon)
+            val _apps = pm.getInstalledApplications(PackageManager.GET_META_DATA)
+            apps = _apps.mapNotNull { appInfo ->
+                try {
+                    AppInfo(
+                        label = pm.getApplicationLabel(appInfo).toString(),
+                        packageName = appInfo.packageName,
+                        icon = pm.getApplicationIcon(appInfo),
+                        activity = null
+                    )
+                } catch (_: PackageManager.NameNotFoundException) {
+                    null
+                }
             }.sortedBy { it.label.lowercase() }
             isLoading = false
         }
@@ -117,7 +115,9 @@ fun CrosshairOverlayAppChooserDialog(
                                 headlineContent = { Text(R.string.default_) },
                                 leadingContent = { Icon(Icons.Default.Settings, null) },
                                 trailingContent = {
-                                    if (settings.hasOverlayConfigOfPackage("default")) {
+                                    if (ctx.prefs("xposed")
+                                            .all().keys.any { it.contains("default") }
+                                    ) {
                                         Icon(
                                             imageVector = Icons.Default.Check,
                                             contentDescription = "has config",
@@ -126,7 +126,6 @@ fun CrosshairOverlayAppChooserDialog(
                                                 .clip(CircleShape)
                                                 .clickable {
                                                     pkgToClearConfig = "default"
-                                                    showClearConfigDialog = true
                                                 }
                                         )
                                     } else {
@@ -157,7 +156,9 @@ fun CrosshairOverlayAppChooserDialog(
                                     )
                                 },
                                 trailingContent = {
-                                    if (settings.hasOverlayConfigOfPackage(app.packageName)) {
+                                    if (ctx.prefs("xposed")
+                                            .all().keys.any { it.contains(app.packageName) }
+                                    ) {
                                         Icon(
                                             imageVector = Icons.Default.Check,
                                             contentDescription = "has config",
@@ -166,7 +167,6 @@ fun CrosshairOverlayAppChooserDialog(
                                                 .clip(CircleShape)
                                                 .clickable {
                                                     pkgToClearConfig = app.packageName
-                                                    showClearConfigDialog = true
                                                 }
                                         )
                                     } else {
@@ -191,22 +191,30 @@ fun CrosshairOverlayAppChooserDialog(
         }
     )
 
-    if (showClearConfigDialog) {
+    if (pkgToClearConfig != null) {
         AlertDialog(
-            onDismissRequest = { showClearConfigDialog = false },
+            onDismissRequest = { pkgToClearConfig = null },
             title = { Text("Clear Config for App") },
             text = { Text("Are you sure you want to clear the config for this app?") },
             confirmButton = {
-                TextButton(onClick = { showClearConfigDialog = false }) { Text(R.string.cancel) }
                 TextButton(onClick = {
                     scope.launch {
-                        settings.removeSingleConfig(fKey("o_${pkgToClearConfig}_h"))
-                        settings.removeSingleConfig(fKey("o_${pkgToClearConfig}_v"))
-                        settings.removeSingleConfig(iKey("o_${pkgToClearConfig}_s"))
-                        settings.removeSingleConfig(iKey("o_${pkgToClearConfig}_w"))
+                        ctx.prefs("xposed").edit {
+                            assert(pkgToClearConfig != null)
+
+                            remove("${pkgToClearConfig}_pbg_e")
+                            remove("${pkgToClearConfig}_pbg_bl")
+                            remove("${pkgToClearConfig}_sc_t")
+                            remove("${pkgToClearConfig}_sc_fs")
+                            remove("${pkgToClearConfig}_sc_ds")
+                            remove("${pkgToClearConfig}_ss_e")
+                        }
+                        pkgToClearConfig = null
                     }
-                    showClearConfigDialog = false
-                }) { Text("OK") }
+                }) { Text(R.string.ok) }
+            },
+            dismissButton = {
+                TextButton(onClick = onDismiss) { Text(R.string.cancel) }
             }
         )
     }

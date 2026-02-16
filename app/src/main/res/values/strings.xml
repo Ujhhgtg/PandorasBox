@@ -129,4 +129,17 @@
     <string name="activated">Activated</string>
     <string name="_package">Package</string>
     <string name="select_app">Select app</string>
+    <string name="predictive_back_gestures">Predictive Back Gestures</string>
+    <string name="select_activity">Select activity</string>
+    <string name="about_libraries">About Libraries</string>
+    <string name="about_libraries_desc">The libraries used in this app.</string>
+    <string name="scaler">Scaler</string>
+    <string name="unactivated">Unactivated</string>
+    <string name="enable">Enable</string>
+    <string name="font_scale">Font Scale</string>
+    <string name="density_scale">Density Scale</string>
+    <string name="signature_spoof">Signature Spoof</string>
+    <string name="input_signature">Input signature</string>
+    <string name="make_sole_signer">Make sole signer</string>
+    <string name="default_transitions">Default Transitions</string>
 </resources>

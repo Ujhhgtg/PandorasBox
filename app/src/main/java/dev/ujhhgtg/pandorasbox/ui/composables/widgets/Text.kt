@@ -1,4 +1,4 @@
-package dev.ujhhgtg.pandorasbox.ui.composables
+package dev.ujhhgtg.pandorasbox.ui.composables.widgets
 
 import androidx.annotation.StringRes
 import androidx.compose.material3.LocalTextStyle

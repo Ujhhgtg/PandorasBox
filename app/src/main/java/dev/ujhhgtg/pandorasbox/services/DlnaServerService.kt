@@ -17,8 +17,8 @@ import dev.ujhhgtg.pandorasbox.receivers.StopServiceReceiver
 import dev.ujhhgtg.pandorasbox.utils.DlnaController
 import dev.ujhhgtg.pandorasbox.utils.PermissionManager
 import dev.ujhhgtg.pandorasbox.utils.ServiceLocator
-import dev.ujhhgtg.pandorasbox.utils.settings.PrefsRepository
 import dev.ujhhgtg.pandorasbox.utils.SimpleFileServer
+import dev.ujhhgtg.pandorasbox.utils.settings.PrefsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -40,8 +40,9 @@ import org.jupnp.registry.Registry
 import org.jupnp.transport.Router
 
 
-class DlnaServerService: Service() {
+class DlnaServerService : Service() {
     private lateinit var settings: PrefsRepository
+
     companion object {
         @Volatile
         var isRunning: MutableState<Boolean> = mutableStateOf(false)
@@ -65,7 +66,7 @@ class DlnaServerService: Service() {
             override fun createRouter(
                 protocolFactory: ProtocolFactory?,
                 registry: Registry?
-            ): Router? {
+            ): Router {
                 return AndroidRouter(
                     getConfiguration(), protocolFactory, this@DlnaServerService
                 )
@@ -170,7 +171,8 @@ class DlnaServerService: Service() {
 
         override fun remoteDeviceRemoved(registry: Registry, device: RemoteDevice) {
             Log.d(TAG, "remote device removed: ${device.displayString}")
-            _deviceListFlow.value = _deviceListFlow.value.filterNot { it.identity.udn == device.identity.udn }
+            _deviceListFlow.value =
+                _deviceListFlow.value.filterNot { it.identity.udn == device.identity.udn }
         }
     }
 
@@ -190,15 +192,41 @@ class DlnaServerService: Service() {
         }
     }
 
-    fun play() { controller?.play() }
-    fun pause() { controller?.pause() }
-    fun stop() { controller?.stop() }
-    fun next() { controller?.next() }
-    fun previous() { controller?.previous() }
-    fun seekTo(targetSec: Long) { controller?.seekTo(targetSec) }
-    fun setVolume(v: Int) { controller?.setVolume(v.coerceIn(0, 100)) }
-    fun selectAudioTrack(id: String) { _selectedAudioFlow.value = id.ifEmpty { null }; controller?.selectAudioTrack(id) }
-    fun selectSubtitle(id: String) { _selectedSubtitleFlow.value = id.ifEmpty { null }; controller?.selectSubtitle(id) }
+    fun play() {
+        controller?.play()
+    }
+
+    fun pause() {
+        controller?.pause()
+    }
+
+    fun stop() {
+        controller?.stop()
+    }
+
+    fun next() {
+        controller?.next()
+    }
+
+    fun previous() {
+        controller?.previous()
+    }
+
+    fun seekTo(targetSec: Long) {
+        controller?.seekTo(targetSec)
+    }
+
+    fun setVolume(v: Int) {
+        controller?.setVolume(v.coerceIn(0, 100))
+    }
+
+    fun selectAudioTrack(id: String) {
+        _selectedAudioFlow.value = id.ifEmpty { null }; controller?.selectAudioTrack(id)
+    }
+
+    fun selectSubtitle(id: String) {
+        _selectedSubtitleFlow.value = id.ifEmpty { null }; controller?.selectSubtitle(id)
+    }
 
     private fun startPolling() {
         scope.launch {

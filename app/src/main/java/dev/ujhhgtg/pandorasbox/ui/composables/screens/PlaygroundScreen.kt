@@ -23,7 +23,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarResult
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,18 +34,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import dev.ujhhgtg.pandorasbox.R
 import dev.ujhhgtg.pandorasbox.ui.activities.LocalActivityContext
 import dev.ujhhgtg.pandorasbox.ui.activities.LocalScrollBehavior
 import dev.ujhhgtg.pandorasbox.ui.activities.LocalSnackbarHostState
-import dev.ujhhgtg.pandorasbox.ui.composables.ButtonSpacer
-import dev.ujhhgtg.pandorasbox.ui.composables.ColorChooserDialog
-import dev.ujhhgtg.pandorasbox.ui.composables.DefaultColumn
 import dev.ujhhgtg.pandorasbox.ui.composables.NeonIndication
-import dev.ujhhgtg.pandorasbox.ui.composables.Text
-import dev.ujhhgtg.pandorasbox.utils.tooltip
+import dev.ujhhgtg.pandorasbox.ui.composables.dialogs.ColorChooserDialog
+import dev.ujhhgtg.pandorasbox.ui.composables.widgets.ButtonSpacer
+import dev.ujhhgtg.pandorasbox.ui.composables.widgets.DefaultColumn
+import dev.ujhhgtg.pandorasbox.ui.composables.widgets.Text
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -58,37 +55,50 @@ fun PlaygroundScreen() {
     val scope = rememberCoroutineScope()
 
     DefaultColumn(scrollBehavior = scrollBehavior) {
-        val prompt = remember { BiometricPrompt.Builder(ctx)
+        val prompt = remember {
+            BiometricPrompt.Builder(ctx)
                 .setTitle("Biometric login for my app")
                 .setSubtitle("Log in using your biometric credential")
                 .setAllowedAuthenticators(BIOMETRIC_STRONG or DEVICE_CREDENTIAL)
-                .build() }
+                .build()
+        }
 
         Button(
             onClick = {
-                prompt.authenticate(CancellationSignal(), ctx.mainExecutor, object : BiometricPrompt.AuthenticationCallback() {
-                    override fun onAuthenticationError(errorCode: Int,
-                                                       errString: CharSequence) {
-                        super.onAuthenticationError(errorCode, errString)
-                        Toast.makeText(ctx,
-                            "Authentication error: $errString", Toast.LENGTH_SHORT)
-                            .show()
-                    }
+                prompt.authenticate(
+                    CancellationSignal(),
+                    ctx.mainExecutor,
+                    object : BiometricPrompt.AuthenticationCallback() {
+                        override fun onAuthenticationError(
+                            errorCode: Int,
+                            errString: CharSequence
+                        ) {
+                            super.onAuthenticationError(errorCode, errString)
+                            Toast.makeText(
+                                ctx,
+                                "Authentication error: $errString", Toast.LENGTH_SHORT
+                            )
+                                .show()
+                        }
 
-                    override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                        super.onAuthenticationSucceeded(result)
-                        Toast.makeText(ctx,
-                            "Authentication succeeded!", Toast.LENGTH_SHORT)
-                            .show()
-                    }
+                        override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                            super.onAuthenticationSucceeded(result)
+                            Toast.makeText(
+                                ctx,
+                                "Authentication succeeded!", Toast.LENGTH_SHORT
+                            )
+                                .show()
+                        }
 
-                    override fun onAuthenticationFailed() {
-                        super.onAuthenticationFailed()
-                        Toast.makeText(ctx, "Authentication failed",
-                            Toast.LENGTH_SHORT)
-                            .show()
-                    }
-                })
+                        override fun onAuthenticationFailed() {
+                            super.onAuthenticationFailed()
+                            Toast.makeText(
+                                ctx, "Authentication failed",
+                                Toast.LENGTH_SHORT
+                            )
+                                .show()
+                        }
+                    })
             }
         ) {
             Icon(painterResource(R.drawable.fingerprint_24px), null)
@@ -114,7 +124,11 @@ fun PlaygroundScreen() {
                             )
 
                             if (result == SnackbarResult.ActionPerformed) {
-                                Toast.makeText(ctx, ctx.getString(R.string.none), Toast.LENGTH_SHORT).show()
+                                Toast.makeText(
+                                    ctx,
+                                    ctx.getString(R.string.none),
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             }
                         }
                     }

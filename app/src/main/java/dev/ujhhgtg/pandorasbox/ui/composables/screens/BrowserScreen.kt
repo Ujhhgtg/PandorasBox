@@ -117,9 +117,9 @@ import dev.ujhhgtg.pandorasbox.ui.activities.LocalHistoryRepository
 import dev.ujhhgtg.pandorasbox.ui.activities.LocalNavController
 import dev.ujhhgtg.pandorasbox.ui.activities.LocalSnackbarHostState
 import dev.ujhhgtg.pandorasbox.ui.activities.LocalTopBarSetter
-import dev.ujhhgtg.pandorasbox.ui.composables.ButtonSpacer
-import dev.ujhhgtg.pandorasbox.ui.composables.IconButton
-import dev.ujhhgtg.pandorasbox.ui.composables.Text
+import dev.ujhhgtg.pandorasbox.ui.composables.widgets.ButtonSpacer
+import dev.ujhhgtg.pandorasbox.ui.composables.widgets.IconButton
+import dev.ujhhgtg.pandorasbox.ui.composables.widgets.Text
 import dev.ujhhgtg.pandorasbox.ui.composables.dialogs.OpenItemDialog
 import dev.ujhhgtg.pandorasbox.utils.ClipboardBridge
 import dev.ujhhgtg.pandorasbox.utils.PackageUtils
@@ -148,7 +148,20 @@ fun BrowserScreen() {
 
     val ctx = LocalActivityContext.current
     val colors = MaterialTheme.colorScheme
-    var tabs by remember { mutableStateOf(listOf(createTab(ctx, snackbarHostState, clipboard, scope, history, "file:///android_asset/home.html"))) }
+    var tabs by remember {
+        mutableStateOf(
+            listOf(
+                createTab(
+                    ctx,
+                    snackbarHostState,
+                    clipboard,
+                    scope,
+                    history,
+                    "file:///android_asset/home.html"
+                )
+            )
+        )
+    }
     var activeTabId by remember { mutableStateOf(tabs.first().id) }
     val activeTab = tabs.find { it.id == activeTabId }
 
@@ -161,14 +174,15 @@ fun BrowserScreen() {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             if (activeTab?.webView?.canGoBack() == true) {
                                 activeTab.webView.goBack()
-                            }
-                            else {
+                            } else {
                                 navController.popBackStack()
                             }
                         }) {
-                            Icon(imageVector = Icons.AutoMirrored.Default.ArrowBack,
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Default.ArrowBack,
                                 contentDescription = stringResource(R.string.back),
-                                modifier = Modifier.tooltip(stringResource(R.string.back)))
+                                modifier = Modifier.tooltip(stringResource(R.string.back))
+                            )
                         }
                         IconButton(onClick = {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -176,9 +190,11 @@ fun BrowserScreen() {
                                 activeTab.webView.goForward()
                             }
                         }) {
-                            Icon(imageVector = Icons.AutoMirrored.Default.ArrowForward,
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Default.ArrowForward,
                                 contentDescription = stringResource(R.string.forward),
-                                modifier = Modifier.tooltip(stringResource(R.string.forward)))
+                                modifier = Modifier.tooltip(stringResource(R.string.forward))
+                            )
                         }
                     }
                 },
@@ -194,8 +210,7 @@ fun BrowserScreen() {
     BackHandler {
         if (activeTab?.webView?.canGoBack() == true) {
             activeTab.webView.goBack()
-        }
-        else {
+        } else {
             navController.popBackStack()
         }
     }
@@ -318,9 +333,11 @@ fun BrowserScreen() {
                 horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(modifier = Modifier
-                    .weight(1f)
-                    .horizontalScroll(rememberScrollState())) {
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .horizontalScroll(rememberScrollState())
+                ) {
                     tabs.forEach { tab ->
                         val isActive = tab.id == activeTabId
                         Row(
@@ -340,30 +357,44 @@ fun BrowserScreen() {
                                     .fillMaxHeight()
                                     .tooltip(stringResource(R.string.close)),
                                 onClick = {
-                                tabs = tabs.filterNot { it.id == tab.id }
+                                    tabs = tabs.filterNot { it.id == tab.id }
 
-                                scope.launch {
-                                    val result = snackbarHostState.showSnackbar(
-                                        ctx.getString(R.string.closed_xxx, tab.webView.title),
-                                        actionLabel = ctx.getString(R.string.undo),
-                                        withDismissAction = false,
-                                        duration = SnackbarDuration.Short)
+                                    scope.launch {
+                                        val result = snackbarHostState.showSnackbar(
+                                            ctx.getString(R.string.closed_xxx, tab.webView.title),
+                                            actionLabel = ctx.getString(R.string.undo),
+                                            withDismissAction = false,
+                                            duration = SnackbarDuration.Short
+                                        )
 
-                                    if (result == SnackbarResult.ActionPerformed) {
-                                        val newTab = createTab(ctx, snackbarHostState, clipboard, scope, history, url = tab.webView.url ?: "")
-                                        tabs = tabs + newTab
-                                        activeTabId = newTab.id
+                                        if (result == SnackbarResult.ActionPerformed) {
+                                            val newTab = createTab(
+                                                ctx,
+                                                snackbarHostState,
+                                                clipboard,
+                                                scope,
+                                                history,
+                                                url = tab.webView.url ?: ""
+                                            )
+                                            tabs = tabs + newTab
+                                            activeTabId = newTab.id
+                                        }
                                     }
-                                }
 
-                                activeTabId = if (tabs.isNotEmpty()) {
-                                    tabs.first().id
-                                } else {
-                                    val homeTab = createTab(ctx, snackbarHostState, clipboard, scope, history)
-                                    tabs = listOf(homeTab)
-                                    homeTab.id
-                                }
-                            }) {
+                                    activeTabId = if (tabs.isNotEmpty()) {
+                                        tabs.first().id
+                                    } else {
+                                        val homeTab = createTab(
+                                            ctx,
+                                            snackbarHostState,
+                                            clipboard,
+                                            scope,
+                                            history
+                                        )
+                                        tabs = listOf(homeTab)
+                                        homeTab.id
+                                    }
+                                }) {
                                 Icon(
                                     imageVector = Icons.Default.Close,
                                     contentDescription = stringResource(R.string.close),
@@ -379,10 +410,12 @@ fun BrowserScreen() {
                     tabs = tabs + newTab
                     activeTabId = newTab.id
                 }) {
-                    Icon(modifier = Modifier.tooltip(stringResource(R.string.new_tab)),
+                    Icon(
+                        modifier = Modifier.tooltip(stringResource(R.string.new_tab)),
                         imageVector = Icons.Default.Add,
                         contentDescription = stringResource(R.string.new_tab),
-                        tint = colors.primary)
+                        tint = colors.primary
+                    )
                 }
             }
 
@@ -395,7 +428,8 @@ fun BrowserScreen() {
                     .padding(all = 2.dp),
                 horizontalArrangement = Arrangement.spacedBy(4.dp)
             ) {
-                val addressBarSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+                val addressBarSheetState =
+                    rememberModalBottomSheetState(skipPartiallyExpanded = true)
                 var showAddressBarSheet by remember { mutableStateOf(false) }
                 var addressBarSheetInput by remember { mutableStateOf(TextFieldValue("")) }
                 val addressBarFocusRequester = remember { FocusRequester() }
@@ -410,16 +444,20 @@ fun BrowserScreen() {
                         .background(MaterialTheme.colorScheme.secondaryContainer),
                     contentAlignment = Alignment.CenterStart
                 ) {
-                    Text(text = activeTab?.url?.value.withoutScheme(),
+                    Text(
+                        text = activeTab?.url?.value.withoutScheme(),
                         maxLines = 1,
-                        overflow = TextOverflow.Clip)
+                        overflow = TextOverflow.Clip
+                    )
                 }
 
                 if (showAddressBarSheet) {
                     LaunchedEffect(Unit) {
                         val address = activeTab?.url?.value ?: ""
-                        addressBarSheetInput = TextFieldValue(address,
-                            selection = TextRange(0, address.length))
+                        addressBarSheetInput = TextFieldValue(
+                            address,
+                            selection = TextRange(0, address.length)
+                        )
                         addressBarFocusRequester.requestFocus()
                     }
 
@@ -437,7 +475,13 @@ fun BrowserScreen() {
                                     .padding(top = 8.dp, start = 8.dp, end = 8.dp)
                             ) {
                                 // TODO: real suggestions
-                                items(listOf("Suggestion 1", "Suggestion 2", "Suggestion 3")) { suggestion ->
+                                items(
+                                    listOf(
+                                        "Suggestion 1",
+                                        "Suggestion 2",
+                                        "Suggestion 3"
+                                    )
+                                ) { suggestion ->
                                     Text(
                                         text = suggestion,
                                         modifier = Modifier
@@ -446,17 +490,22 @@ fun BrowserScreen() {
                                             .clickable {
                                                 activeTab?.webView?.openUrl(suggestion)
                                                 showAddressBarSheet = false
-                                            }) } }
+                                            })
+                                }
+                            }
 
-                            Row(modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 2.dp, vertical = 4.dp),
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 2.dp, vertical = 4.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 IconButton(onClick = { addressBarSheetInput.text }) {
-                                    Icon(Icons.Default.Search,
+                                    Icon(
+                                        Icons.Default.Search,
                                         contentDescription = stringResource(R.string.search),
-                                        modifier = Modifier.tooltip(stringResource(R.string.search)))
+                                        modifier = Modifier.tooltip(stringResource(R.string.search))
+                                    )
                                 }
 
                                 Box(modifier = Modifier.weight(1f)) {
@@ -491,42 +540,55 @@ fun BrowserScreen() {
                                     }
                                 }
 
-                                IconButton(onClick = { addressBarSheetInput = TextFieldValue("") }) {
-                                    Icon(Icons.Default.Clear,
+                                IconButton(onClick = {
+                                    addressBarSheetInput = TextFieldValue("")
+                                }) {
+                                    Icon(
+                                        Icons.Default.Clear,
                                         contentDescription = stringResource(R.string.clear),
-                                        modifier = Modifier.tooltip(stringResource(R.string.clear)))
+                                        modifier = Modifier.tooltip(stringResource(R.string.clear))
+                                    )
                                 }
 
                                 IconButton(onClick = {
                                     // TODO
                                 }) {
-                                    Icon(painterResource(R.drawable.open_in_full_24px),
+                                    Icon(
+                                        painterResource(R.drawable.open_in_full_24px),
                                         contentDescription = stringResource(R.string.maximize),
-                                        modifier = Modifier.tooltip(stringResource(R.string.maximize)))
+                                        modifier = Modifier.tooltip(stringResource(R.string.maximize))
+                                    )
                                 }
 
-                                IconButton(Modifier.combinedClickable(
-                                    onClick = {
-                                        if (addressBarSheetInput.text.isEmpty()) {
-                                            return@combinedClickable
-                                        }
+                                IconButton(
+                                    Modifier.combinedClickable(
+                                        onClick = {
+                                            if (addressBarSheetInput.text.isEmpty()) {
+                                                return@combinedClickable
+                                            }
 
-                                        activeTab?.webView?.openUrl(addressBarSheetInput.text)
-                                        showAddressBarSheet = false
-                                    },
-                                    onLongClick = {
-                                        if (addressBarSheetInput.text.isEmpty()) {
-                                            return@combinedClickable
-                                        }
+                                            activeTab?.webView?.openUrl(addressBarSheetInput.text)
+                                            showAddressBarSheet = false
+                                        },
+                                        onLongClick = {
+                                            if (addressBarSheetInput.text.isEmpty()) {
+                                                return@combinedClickable
+                                            }
 
-                                        activeTab?.webView?.openUrl(addressBarSheetInput.text, true)
-                                        showAddressBarSheet = false
-                                    },
-                                    role = Role.Button,
-                                    interactionSource = null
-                                )) {
-                                    Icon(painterResource(R.drawable.arrow_forward_24px),
-                                        contentDescription = stringResource(R.string.go))
+                                            activeTab?.webView?.openUrl(
+                                                addressBarSheetInput.text,
+                                                true
+                                            )
+                                            showAddressBarSheet = false
+                                        },
+                                        role = Role.Button,
+                                        interactionSource = null
+                                    )
+                                ) {
+                                    Icon(
+                                        painterResource(R.drawable.arrow_forward_24px),
+                                        contentDescription = stringResource(R.string.go)
+                                    )
                                 }
                             }
                         }
@@ -539,7 +601,10 @@ fun BrowserScreen() {
                 IconButton(onClick = {
                     tabs.find { it.id == activeTabId }?.webView?.reload()
                 }) {
-                    Icon(Icons.Default.Refresh, contentDescription = stringResource(R.string.reload))
+                    Icon(
+                        Icons.Default.Refresh,
+                        contentDescription = stringResource(R.string.reload)
+                    )
                 }
 
                 IconButton(onClick = {
@@ -553,17 +618,22 @@ fun BrowserScreen() {
                 }
 
                 IconButton(onClick = { showMenuSheet = true }) {
-                    Icon(Icons.Default.Menu, contentDescription = stringResource(R.string.menu),
-                        Modifier.tooltip(R.string.menu))
+                    Icon(
+                        Icons.Default.Menu, contentDescription = stringResource(R.string.menu),
+                        Modifier.tooltip(R.string.menu)
+                    )
                 }
 
                 var showOpenUrlDialog by remember { mutableStateOf(false) }
 
                 if (showMenuSheet) {
                     val items = listOf(
-                        MenuItem({ Icon(Icons.Default.Settings, null, it) },
-                            stringResource(R.string.settings), { navController.navigate("browser_settings") }),
-                        MenuItem({ Icon(painterResource(R.drawable.share_windows_24px), null, it) },
+                        MenuItem(
+                            { Icon(Icons.Default.Settings, null, it) },
+                            stringResource(R.string.settings),
+                            { navController.navigate("browser_settings") }),
+                        MenuItem(
+                            { Icon(painterResource(R.drawable.share_windows_24px), null, it) },
                             stringResource(R.string.open_in_external_app), {
 //                                openUrlInExternalApps(ctx, activeTab?.url?.value, snackbarHostState, scope)
                                 showOpenUrlDialog = true
@@ -620,7 +690,9 @@ fun BrowserScreen() {
                 }
 
                 if (showOpenUrlDialog) {
-                    OpenItemDialog(OpenableItem.UrlItem(activeTab?.url?.value.toString())) { showOpenUrlDialog = false }
+                    OpenItemDialog(OpenableItem.UrlItem(activeTab?.url?.value.toString())) {
+                        showOpenUrlDialog = false
+                    }
                 }
             }
         }
@@ -647,7 +719,13 @@ fun MenuButton(item: MenuItem, onDismiss: () -> Unit) {
 }
 
 
-private fun handleSpecialUrls(urlStr: String?, ctx: Context, scope: CoroutineScope, view: WebView?, snackbarHostState: SnackbarHostState): Boolean? {
+private fun handleSpecialUrls(
+    urlStr: String?,
+    ctx: Context,
+    scope: CoroutineScope,
+    view: WebView?,
+    snackbarHostState: SnackbarHostState
+): Boolean? {
     if (urlStr == null) {
         return null
     }
@@ -672,9 +750,16 @@ private fun handleSpecialUrls(urlStr: String?, ctx: Context, scope: CoroutineSco
 
             scope.launch {
                 val result = snackbarHostState.showSnackbar(
-                    message = ctx.getString(R.string.open_in_external_app_xxx_question,
-                        PackageUtils.getAppName(ctx, intent.`package` ?: intent.component?.packageName) ?:
-                        ctx.packageManager.resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY)?.activityInfo?.name),
+                    message = ctx.getString(
+                        R.string.open_in_external_app_xxx_question,
+                        PackageUtils.getAppName(
+                            ctx,
+                            intent.`package` ?: intent.component?.packageName
+                        ) ?: ctx.packageManager.resolveActivity(
+                            intent,
+                            PackageManager.MATCH_DEFAULT_ONLY
+                        )?.activityInfo?.name
+                    ),
                     actionLabel = ctx.getString(R.string.open),
                     withDismissAction = true,
                     duration = SnackbarDuration.Long
@@ -703,8 +788,11 @@ private fun handleSpecialUrls(urlStr: String?, ctx: Context, scope: CoroutineSco
             if (activity != null) {
                 scope.launch {
                     val result = snackbarHostState.showSnackbar(
-                        message = ctx.getString(R.string.open_in_external_app_xxx_question,
-                            PackageUtils.getAppName(ctx, activity.packageName) ?: activity.packageName),
+                        message = ctx.getString(
+                            R.string.open_in_external_app_xxx_question,
+                            PackageUtils.getAppName(ctx, activity.packageName)
+                                ?: activity.packageName
+                        ),
                         actionLabel = ctx.getString(R.string.open),
                         withDismissAction = true,
                         duration = SnackbarDuration.Long
@@ -716,7 +804,8 @@ private fun handleSpecialUrls(urlStr: String?, ctx: Context, scope: CoroutineSco
                 }
             } else {
                 snackbarHostState.showShort(
-                    ctx.getString(R.string.no_apps_to_handle_scheme_xxx, scheme), scope)
+                    ctx.getString(R.string.no_apps_to_handle_scheme_xxx, scheme), scope
+                )
                 Log.e(TAG, ctx.getString(R.string.no_apps_to_handle_scheme_xxx, scheme))
             }
             return true
@@ -781,7 +870,7 @@ private fun createTab(
         settings.mixedContentMode = WebSettings.MIXED_CONTENT_NEVER_ALLOW
         isLongClickable = true
         setOnLongClickListener {
-            
+
             return@setOnLongClickListener true
         }
 
@@ -838,8 +927,12 @@ private fun createTab(
             }
 
             // this function is invoked on user navigation
-            override fun shouldOverrideUrlLoading(view: WebView?, request: WebResourceRequest?): Boolean {
-                val result = handleSpecialUrls(request?.url.toString(), ctx, scope, view, snackbarHostState)
+            override fun shouldOverrideUrlLoading(
+                view: WebView?,
+                request: WebResourceRequest?
+            ): Boolean {
+                val result =
+                    handleSpecialUrls(request?.url.toString(), ctx, scope, view, snackbarHostState)
                 return result == true
             }
 
@@ -886,7 +979,12 @@ private fun createTab(
                 progressState.floatValue = newProgress / 100f
             }
 
-            override fun onJsAlert(view: WebView, url: String, message: String, result: JsResult): Boolean {
+            override fun onJsAlert(
+                view: WebView,
+                url: String,
+                message: String,
+                result: JsResult
+            ): Boolean {
                 MaterialAlertDialogBuilder(context)
                     .setTitle("Website alerts: $url")
                     .setMessage(message)
@@ -896,7 +994,12 @@ private fun createTab(
                 return true
             }
 
-            override fun onJsConfirm(view: WebView, url: String, message: String, result: JsResult): Boolean {
+            override fun onJsConfirm(
+                view: WebView,
+                url: String,
+                message: String,
+                result: JsResult
+            ): Boolean {
                 MaterialAlertDialogBuilder(context)
                     .setTitle("Website asks for confirmation: $url")
                     .setMessage(message)
@@ -953,7 +1056,10 @@ private fun createTab(
                 return true
             }
 
-            override fun onGeolocationPermissionsShowPrompt(origin: String, callback: GeolocationPermissions.Callback) {
+            override fun onGeolocationPermissionsShowPrompt(
+                origin: String,
+                callback: GeolocationPermissions.Callback
+            ) {
                 MaterialAlertDialogBuilder(context)
                     .setTitle(context.getString(R.string.website_asks_for_location_perm_xxx, url))
                     .setPositiveButton("Allow") { _, _ -> callback.invoke(origin, true, false) }
@@ -969,7 +1075,8 @@ private fun createTab(
                 .setTitle(R.string.download_file_question)
                 .setView(input)
                 .setPositiveButton(R.string.yes) { _, _ ->
-                    val outputDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                    val outputDir =
+                        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
                     val dlManager = ServiceLocator.get(DownloadService::class.java)!!
                     dlManager.startDownload(
                         url = url,
@@ -1013,7 +1120,14 @@ private fun createTab(
                 }
                 .setNeutralButton(R.string.copy_link) { _, _ ->
                     scope.launch {
-                        clipboard.setClipEntry(ClipEntry(ClipData.newPlainText("Download link", url)))
+                        clipboard.setClipEntry(
+                            ClipEntry(
+                                ClipData.newPlainText(
+                                    "Download link",
+                                    url
+                                )
+                            )
+                        )
                     }
                     snackbarHostState.showShort(ctx.getString(R.string.copied_to_clipboard), scope)
                 }

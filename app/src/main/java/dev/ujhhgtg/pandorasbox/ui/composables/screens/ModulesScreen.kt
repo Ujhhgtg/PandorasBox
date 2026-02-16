@@ -1,11 +1,6 @@
 package dev.ujhhgtg.pandorasbox.ui.composables.screens
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.Settings
@@ -28,29 +23,46 @@ import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import dev.ujhhgtg.pandorasbox.R
 import dev.ujhhgtg.pandorasbox.models.Module
-import dev.ujhhgtg.pandorasbox.ui.composables.Text
+import dev.ujhhgtg.pandorasbox.ui.composables.widgets.SplicedColumnGroup
+import dev.ujhhgtg.pandorasbox.ui.composables.widgets.Text
 import dev.ujhhgtg.pandorasbox.utils.tooltip
 
 @Composable
-fun ModulesScreen(navController: NavController, modules: List<Module>, onAddShortcut: (String, Int, Int, String, Int) -> Unit) {
-    LazyColumn(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        items(modules) { module ->
-            ModuleCard(navController, module, onAddShortcut)
+fun ModulesScreen(
+    navController: NavController,
+    modules: List<Module>,
+    onAddShortcut: (String, Int, Int, String, Int) -> Unit
+) {
+//    LazyColumn(
+//        modifier = Modifier
+//            .fillMaxSize()
+//            .padding(16.dp),
+//        verticalArrangement = Arrangement.spacedBy(12.dp)
+//    ) {
+//        items(modules) { module ->
+//            ModuleCard(navController, module, onAddShortcut)
+//        }
+//    }
+    SplicedColumnGroup(content = modules.map { m ->
+        {
+            ModuleCard(
+                navController,
+                m,
+                onAddShortcut
+            )
         }
-    }
+    })
 }
 
 @Composable
-fun ModuleCard(navController: NavController, module: Module, onAddShortcut: (String, Int, Int, String, Int) -> Unit) {
+fun ModuleCard(
+    navController: NavController,
+    module: Module,
+    onAddShortcut: (String, Int, Int, String, Int) -> Unit
+) {
     var expanded by remember { mutableStateOf(false) }
     val haptic = LocalHapticFeedback.current
 
@@ -63,11 +75,25 @@ fun ModuleCard(navController: NavController, module: Module, onAddShortcut: (Str
                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
             },
         colors = ListItemDefaults.colors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            headlineColor = MaterialTheme.colorScheme.onSurface,
+            supportingColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            leadingIconColor = MaterialTheme.colorScheme.primary,
+            trailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
         ),
         leadingContent = module.icon,
-        headlineContent = { Text(text = stringResource(module.label), style = MaterialTheme.typography.titleMedium) },
-        supportingContent = { Text(text = stringResource(module.description), style = MaterialTheme.typography.bodyMedium) },
+        headlineContent = {
+            Text(
+                text = stringResource(module.label),
+                style = MaterialTheme.typography.titleMedium
+            )
+        },
+        supportingContent = {
+            Text(
+                text = stringResource(module.description),
+                style = MaterialTheme.typography.bodyMedium
+            )
+        },
         trailingContent = {
             IconButton(onClick = { expanded = true }) {
                 Icon(
@@ -82,10 +108,12 @@ fun ModuleCard(navController: NavController, module: Module, onAddShortcut: (Str
             ) {
                 if (module.id != "settings") {
                     DropdownMenuItem(
-                        leadingIcon = { Icon(
-                            imageVector = Icons.Outlined.Settings,
-                            contentDescription = null
-                        ) },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Settings,
+                                contentDescription = null
+                            )
+                        },
                         text = { Text(R.string.settings) },
                         onClick = {
                             expanded = false
@@ -94,14 +122,22 @@ fun ModuleCard(navController: NavController, module: Module, onAddShortcut: (Str
                     )
                 }
                 DropdownMenuItem(
-                    leadingIcon = { Icon(
-                        painter = painterResource(R.drawable.share_windows_24px),
-                        contentDescription = stringResource(R.string.add_shortcut_to_launcher)
-                    ) },
+                    leadingIcon = {
+                        Icon(
+                            painter = painterResource(R.drawable.share_windows_24px),
+                            contentDescription = stringResource(R.string.add_shortcut_to_launcher)
+                        )
+                    },
                     text = { Text(R.string.add_shortcut_to_launcher) },
                     onClick = {
                         expanded = false
-                        onAddShortcut(module.id, module.label, module.description, "pb://${module.id}", R.mipmap.ic_launcher)
+                        onAddShortcut(
+                            module.id,
+                            module.label,
+                            module.description,
+                            "pb://${module.id}",
+                            R.mipmap.ic_launcher
+                        )
                     }
                 )
             }

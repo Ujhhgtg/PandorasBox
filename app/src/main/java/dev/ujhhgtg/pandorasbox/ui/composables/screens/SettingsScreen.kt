@@ -3,7 +3,7 @@ package dev.ujhhgtg.pandorasbox.ui.composables.screens
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import dev.ujhhgtg.pandorasbox.ui.activities.LocalScrollBehavior
-import dev.ujhhgtg.pandorasbox.ui.composables.DefaultColumn
+import dev.ujhhgtg.pandorasbox.ui.composables.widgets.DefaultColumn
 
 
 @OptIn(ExperimentalMaterial3Api::class)

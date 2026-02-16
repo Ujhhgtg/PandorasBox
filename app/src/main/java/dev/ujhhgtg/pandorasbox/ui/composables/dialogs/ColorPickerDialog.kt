@@ -1,4 +1,4 @@
-package dev.ujhhgtg.pandorasbox.ui.composables
+package dev.ujhhgtg.pandorasbox.ui.composables.dialogs
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -47,12 +47,12 @@ fun ColorChooserDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
             TextButton(onClick = { onColorSelected(color.copy(alpha = alpha)) }) {
-                Text(R.string.ok)
+                dev.ujhhgtg.pandorasbox.ui.composables.widgets.Text(R.string.ok)
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(R.string.cancel)
+                dev.ujhhgtg.pandorasbox.ui.composables.widgets.Text(R.string.cancel)
             }
         },
         title = { Text("Choose Color") },

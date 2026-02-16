@@ -20,5 +20,18 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
-# INCOMPLETE, DO NOT USE
+-keep class com.highcapable.** { *; }
+
+-keep class dev.ujhhgtg.pandorasbox.BuildConfig { *; }
+-keep class dev.ujhhgtg.pandorasbox.BrowserHistory { *; }
+-keep class dev.ujhhgtg.pandorasbox.BrowserHistoryOrBuilder { *; }
+-keep class dev.ujhhgtg.pandorasbox.History { *; }
+-keep class dev.ujhhgtg.pandorasbox.HistoryEntry { *; }
+-keep class dev.ujhhgtg.pandorasbox.HistoryEntryOrBuilder { *; }
+-keep class dev.ujhhgtg.pandorasbox.xposed.** { *; }
+
 -keepnames class dev.ujhhgtg.pandorasbox.services.* { *; }
+
+-classobfuscationdictionary proguard-dict.txt
+-obfuscationdictionary proguard-dict.txt
+-packageobfuscationdictionary proguard-dict.txt

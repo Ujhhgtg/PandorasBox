@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import dev.ujhhgtg.pandorasbox.R
 import dev.ujhhgtg.pandorasbox.models.NormalizedCircle
-import dev.ujhhgtg.pandorasbox.ui.composables.Text
+import dev.ujhhgtg.pandorasbox.ui.composables.widgets.Text
 import kotlin.math.roundToInt
 
 @Composable

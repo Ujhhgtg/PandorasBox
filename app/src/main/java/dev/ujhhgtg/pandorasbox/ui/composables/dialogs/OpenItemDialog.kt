@@ -4,9 +4,6 @@ package dev.ujhhgtg.pandorasbox.ui.composables.dialogs
 
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -48,15 +45,14 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
-import androidx.core.graphics.createBitmap
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.net.toUri
 import dev.ujhhgtg.pandorasbox.R
 import dev.ujhhgtg.pandorasbox.enums.IntentAction
 import dev.ujhhgtg.pandorasbox.models.AppInfo
 import dev.ujhhgtg.pandorasbox.models.OpenableItem
-import dev.ujhhgtg.pandorasbox.ui.composables.LoadingIndicator
-import dev.ujhhgtg.pandorasbox.ui.composables.Text
+import dev.ujhhgtg.pandorasbox.ui.composables.widgets.LoadingIndicator
+import dev.ujhhgtg.pandorasbox.ui.composables.widgets.Text
 import dev.ujhhgtg.pandorasbox.utils.tooltip
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -276,14 +272,6 @@ fun AppList(
             )
         }
     }
-}
-
-fun Drawable.toBitmapSafe(sizePx: Int): Bitmap {
-    val bitmap = createBitmap(sizePx, sizePx)
-    val canvas = Canvas(bitmap)
-    this.setBounds(0, 0, canvas.width, canvas.height)
-    this.draw(canvas)
-    return bitmap
 }
 
 @Composable

@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string-array name="module_scope">
+        <item>android</item>
         <item>com.tencent.tim</item>
         <item>com.baidu.tieba</item>
         <item>tv.danmaku.bili</item>
@@ -9,5 +10,9 @@
         <item>com.eg.android.AlipayGphone</item>
         <item>com.github.metacubex.clash.meta</item>
         <item>com.taptap</item>
+        <item>com.jingdong.app.mall</item>
+        <item>com.android.documentsui</item>
+        <item>com.legado.app.release</item>
+        <item>com.twitter.android</item>
     </string-array>
 </resources>

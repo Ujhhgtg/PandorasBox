@@ -1,4 +1,4 @@
-package dev.ujhhgtg.pandorasbox.ui.composables
+package dev.ujhhgtg.pandorasbox.ui.composables.widgets
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes

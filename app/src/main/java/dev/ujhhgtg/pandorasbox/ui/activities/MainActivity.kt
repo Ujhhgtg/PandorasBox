@@ -31,13 +31,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CenterFocusWeak
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.outlined.Cast
 import androidx.compose.material.icons.outlined.Extension
 import androidx.compose.material.icons.outlined.FolderOpen
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Keyboard
 import androidx.compose.material.icons.outlined.Language
 import androidx.compose.material.icons.outlined.PhotoLibrary
@@ -47,7 +47,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -76,7 +75,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.navigation.NavController
@@ -95,7 +93,7 @@ import dev.ujhhgtg.pandorasbox.services.CrosshairOverlayService
 import dev.ujhhgtg.pandorasbox.services.DlnaServerService
 import dev.ujhhgtg.pandorasbox.services.DownloadService
 import dev.ujhhgtg.pandorasbox.services.InputMapperService
-import dev.ujhhgtg.pandorasbox.ui.composables.Text
+import dev.ujhhgtg.pandorasbox.ui.composables.screens.AboutLibrariesScreen
 import dev.ujhhgtg.pandorasbox.ui.composables.screens.AimBotScreen
 import dev.ujhhgtg.pandorasbox.ui.composables.screens.BrowserScreen
 import dev.ujhhgtg.pandorasbox.ui.composables.screens.CrosshairOverlayScreen
@@ -107,15 +105,17 @@ import dev.ujhhgtg.pandorasbox.ui.composables.screens.InputMapperScreen
 import dev.ujhhgtg.pandorasbox.ui.composables.screens.ModulesScreen
 import dev.ujhhgtg.pandorasbox.ui.composables.screens.PlaygroundScreen
 import dev.ujhhgtg.pandorasbox.ui.composables.screens.XposedScreen
-import dev.ujhhgtg.pandorasbox.ui.composables.settingsGraph
+import dev.ujhhgtg.pandorasbox.ui.composables.widgets.BackButton
+import dev.ujhhgtg.pandorasbox.ui.composables.widgets.Text
+import dev.ujhhgtg.pandorasbox.ui.composables.widgets.settingsGraph
 import dev.ujhhgtg.pandorasbox.ui.theme.AppTheme
 import dev.ujhhgtg.pandorasbox.utils.PermissionManager
 import dev.ujhhgtg.pandorasbox.utils.ReflectUtils
+import dev.ujhhgtg.pandorasbox.utils.getCurrentRouteAsState
 import dev.ujhhgtg.pandorasbox.utils.settings.HistoryRepository
 import dev.ujhhgtg.pandorasbox.utils.settings.PrefsRepository
 import dev.ujhhgtg.pandorasbox.utils.settings.PrefsRepository.Companion.bKey
 import dev.ujhhgtg.pandorasbox.utils.settings.PrefsRepository.Companion.iKey
-import dev.ujhhgtg.pandorasbox.utils.tooltip
 import java.util.concurrent.TimeUnit
 
 val LocalTopBarSetter = compositionLocalOf<((@Composable () -> Unit)?) -> Unit> { {} }
@@ -186,7 +186,7 @@ class MainActivity : ComponentActivity() {
 //        ) {
             Scaffold(
                 snackbarHost = {
-                    val currentRoute = getCurrentRouteAsState(navController)
+                    val currentRoute = navController.getCurrentRouteAsState()
                     SnackbarHost(
                         snackbarHostState, modifier = Modifier
                             .padding(bottom = if (currentRoute == "browser") 91.dp else 0.dp)
@@ -213,19 +213,28 @@ class MainActivity : ComponentActivity() {
                                     navController.previousBackStackEntry != null
                                 }
                                 AnimatedVisibility(canNavigateBack) {
-                                    IconButton(onClick = {
-                                        navController.popBackStack()
+                                    BackButton(onClick = {
+                                        navController.navigateUp()
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    }) {
-                                        Icon(
-                                            imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                                            contentDescription = stringResource(R.string.back),
-                                            modifier = Modifier.tooltip(stringResource(R.string.back))
-                                        )
-                                    }
+                                    })
                                 }
                             },
-                            title = { Text(R.string.app_name) },
+                            title = {
+                                val route = navController.getCurrentRouteAsState()
+                                val module = modules.firstOrNull { m ->
+                                    m.id == route
+                                }
+                                val resId = if (module == null || route == null) {
+                                    R.string.app_name
+                                } else if (route.contains("settings")) {
+                                    R.string.settings
+                                } else {
+                                    module.label
+                                }
+                                AnimatedContent(resId) { resId ->
+                                    Text(resId)
+                                }
+                            },
                             scrollBehavior = scrollBehavior
                         )
                     }
@@ -325,7 +334,12 @@ class MainActivity : ComponentActivity() {
                                 "playground",
                                 deepLinks = listOf(navDeepLink { uriPattern = "pb://playground" })
                             ) { PlaygroundScreen() }
-
+                            composable(
+                                "about_libraries",
+                                deepLinks = listOf(navDeepLink {
+                                    uriPattern = "pb://about_libraries"
+                                })
+                            ) { AboutLibrariesScreen() }
                             composable("modules") {
                                 ModulesScreen(
                                     navController,
@@ -664,6 +678,17 @@ class MainActivity : ComponentActivity() {
             id = "xposed"
         ),
         Module(
+            label = R.string.about_libraries,
+            description = R.string.about_libraries_desc,
+            icon = {
+                Icon(
+                    Icons.Outlined.Info,
+                    contentDescription = null
+                )
+            },
+            id = "about_libraries"
+        ),
+        Module(
             label = R.string.playground,
             description = R.string.playground_desc,
             icon = {
@@ -686,13 +711,6 @@ class MainActivity : ComponentActivity() {
             id = "settings"
         )
     )
-
-    @Composable
-    private fun getCurrentRouteAsState(navController: NavController): String? {
-        val navBackStackEntry by navController.currentBackStackEntryAsState()
-        val currentRoute = navBackStackEntry?.destination?.route
-        return currentRoute
-    }
 
     @Suppress("UNCHECKED_CAST")
     private inline fun <reified T : Service> toggleService(): Boolean {

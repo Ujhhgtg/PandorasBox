@@ -1,4 +1,4 @@
-package dev.ujhhgtg.pandorasbox.ui.composables
+package dev.ujhhgtg.pandorasbox.ui.composables.widgets
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,10 +20,13 @@ fun DefaultColumn(scrollBehavior: TopAppBarScrollBehavior?, content: @Composable
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .apply {
+            .let {
                 if (scrollBehavior != null) {
-                    nestedScroll(scrollBehavior.nestedScrollConnection)
-                    verticalScroll(rememberScrollState())
+                    it
+                        .nestedScroll(scrollBehavior.nestedScrollConnection)
+                        .verticalScroll(rememberScrollState())
+                } else {
+                    it
                 }
             }
             .padding(16.dp),

@@ -1,4 +1,4 @@
-package dev.ujhhgtg.pandorasbox.ui.composables
+package dev.ujhhgtg.pandorasbox.ui.composables.widgets
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -57,7 +57,11 @@ fun SettingsList(
     val snackbarHostState = LocalSnackbarHostState.current
     val ctx = LocalActivityContext.current
     val dataStore = settings.dataStore
-    var inputDialogState by remember { mutableStateOf<Triple<SettingItem.Input, String, (String) -> Unit>?>(null) }
+    var inputDialogState by remember {
+        mutableStateOf<Triple<SettingItem.Input, String, (String) -> Unit>?>(
+            null
+        )
+    }
     var validationError by remember { mutableStateOf<String?>(null) }
 
     LazyColumn {
@@ -66,13 +70,13 @@ fun SettingsList(
                 is SettingItem.Toggle -> {
                     var value by remember { mutableStateOf(item.defaultValue) }
 
-                    LaunchedEffect(item.key) {
-                        val key = booleanPreferencesKey(item.key)
+                    LaunchedEffect(item.id) {
+                        val key = booleanPreferencesKey(item.id)
                         value = dataStore.data.first()[key] ?: item.defaultValue
                     }
 
                     ListItem(
-                        headlineContent = { Text(item.title) },
+                        headlineContent = { Text(item.label) },
                         supportingContent = {
                             if (item.description.isNotEmpty()) Text(item.description)
                         },
@@ -82,7 +86,7 @@ fun SettingsList(
                                 checked = value,
                                 onCheckedChange = { newValue ->
                                     value = newValue
-                                    val key = booleanPreferencesKey(item.key)
+                                    val key = booleanPreferencesKey(item.id)
                                     scope.launch {
                                         dataStore.edit { prefs -> prefs[key] = newValue }
                                     }
@@ -93,16 +97,19 @@ fun SettingsList(
                             .fillMaxWidth()
                             .combinedClickable(onClick = {
                                 value = !value
-                                val key = booleanPreferencesKey(item.key)
+                                val key = booleanPreferencesKey(item.id)
                                 scope.launch {
                                     dataStore.edit { prefs -> prefs[key] = value }
                                 }
                             }, onLongClick = {
                                 value = item.defaultValue
-                                val key = booleanPreferencesKey(item.key)
+                                val key = booleanPreferencesKey(item.id)
                                 scope.launch {
                                     dataStore.edit { prefs -> prefs[key] = item.defaultValue }
-                                    snackbarHostState.showShort(ctx.getString(R.string.reset_setting_item), scope)
+                                    snackbarHostState.showShort(
+                                        ctx.getString(R.string.reset_setting_item),
+                                        scope
+                                    )
                                 }
                             })
                     )
@@ -112,13 +119,13 @@ fun SettingsList(
                     var expanded by remember { mutableStateOf(false) }
                     var value by remember { mutableIntStateOf(item.selectedIndex) }
 
-                    LaunchedEffect(item.key) {
-                        val key = intPreferencesKey(item.key)
+                    LaunchedEffect(item.id) {
+                        val key = intPreferencesKey(item.id)
                         value = dataStore.data.first()[key] ?: item.defaultIndex
                     }
 
                     ListItem(
-                        headlineContent = { Text(item.title) },
+                        headlineContent = { Text(item.label) },
                         supportingContent = {
                             if (item.description.isNotEmpty()) Text(item.description)
                         },
@@ -139,7 +146,7 @@ fun SettingsList(
                                         DropdownMenuItem(onClick = {
                                             value = index
                                             expanded = false
-                                            val key = intPreferencesKey(item.key)
+                                            val key = intPreferencesKey(item.id)
                                             scope.launch {
                                                 dataStore.edit { prefs -> prefs[key] = index }
                                             }
@@ -150,22 +157,28 @@ fun SettingsList(
                                 }
                             }
                         },
-                        modifier = Modifier.fillMaxWidth()
-                            .combinedClickable(onClick = { expanded = true },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .combinedClickable(
+                                onClick = { expanded = true },
                                 onLongClick = {
-                                    val key = intPreferencesKey(item.key)
+                                    val key = intPreferencesKey(item.id)
                                     scope.launch {
                                         value = item.defaultIndex
                                         dataStore.edit { prefs -> prefs[key] = item.defaultIndex }
-                                        snackbarHostState.showShort(ctx.getString(R.string.reset_setting_item), scope)
-                                    } })
+                                        snackbarHostState.showShort(
+                                            ctx.getString(R.string.reset_setting_item),
+                                            scope
+                                        )
+                                    }
+                                })
                     )
                 }
 
                 is SettingItem.Input -> {
                     var value by remember { mutableStateOf(item.defaultValue) }
-                    LaunchedEffect(item.key) {
-                        val key = stringPreferencesKey(item.key)
+                    LaunchedEffect(item.id) {
+                        val key = stringPreferencesKey(item.id)
                         value = dataStore.data.first()[key] ?: item.defaultValue
                     }
 
@@ -175,17 +188,24 @@ fun SettingsList(
                             if (item.description.isNotEmpty()) Text(item.description)
                         },
                         leadingContent = item.icon,
-                        trailingContent = { Text(value, modifier = Modifier.clickable { inputDialogState = Triple(item, value) { value = it }
-                            validationError = null }) },
+                        trailingContent = {
+                            Text(value, modifier = Modifier.clickable {
+                                inputDialogState = Triple(item, value) { value = it }
+                                validationError = null
+                            })
+                        },
                         modifier = Modifier.combinedClickable(onClick = {
                             inputDialogState = Triple(item, value) { value = it }
                             validationError = null
                         }, onLongClick = {
-                            val key = stringPreferencesKey(item.key)
+                            val key = stringPreferencesKey(item.id)
                             scope.launch {
                                 value = item.defaultValue
                                 dataStore.edit { prefs -> prefs[key] = item.defaultValue }
-                                snackbarHostState.showShort(ctx.getString(R.string.reset_setting_item), scope)
+                                snackbarHostState.showShort(
+                                    ctx.getString(R.string.reset_setting_item),
+                                    scope
+                                )
                             }
                         })
                     )
@@ -193,19 +213,24 @@ fun SettingsList(
 
                 is SettingItem.SubPage -> {
                     ListItem(
-                        headlineContent = { Text(item.title) },
+                        headlineContent = { Text(item.label) },
                         supportingContent = {
                             if (item.description.isNotEmpty()) Text(item.description)
                         },
                         leadingContent = item.icon,
-                        trailingContent = { Icon(Icons.AutoMirrored.Default.ArrowForward, contentDescription = null) },
-                        modifier = Modifier.clickable { navController.navigate(item.route) }
+                        trailingContent = {
+                            Icon(
+                                Icons.AutoMirrored.Default.ArrowForward,
+                                contentDescription = null
+                            )
+                        },
+                        modifier = Modifier.clickable { navController.navigate(item.id) }
                     )
                 }
 
                 is SettingItem.Action -> {
                     ListItem(
-                        headlineContent = { Text(item.title) },
+                        headlineContent = { Text(item.label) },
                         supportingContent = {
                             if (item.description.isNotEmpty()) Text(item.description)
                         },
@@ -223,10 +248,10 @@ fun SettingsList(
         }
     }
 
-    inputDialogState?.let { (inputItem, currentValue, onValueChange) ->
+    inputDialogState?.let { (item, currentValue, onValueChange) ->
         AlertDialog(
             onDismissRequest = { inputDialogState = null },
-            title = { Text(inputItem.label) },
+            title = { Text(item.label) },
             text = {
                 Column {
                     TextField(
@@ -237,8 +262,8 @@ fun SettingsList(
                         },
                         singleLine = true
                     )
-                    if (inputItem.description.isNotEmpty()) {
-                        Text(inputItem.description)
+                    if (item.description.isNotEmpty()) {
+                        Text(item.description)
                     }
                     validationError?.let {
                         Text(it, color = MaterialTheme.colorScheme.error)
@@ -247,15 +272,15 @@ fun SettingsList(
             },
             confirmButton = {
                 TextButton(onClick = {
-                    val isValid = inputItem.validator?.invoke(currentValue) ?: true
+                    val isValid = item.validator?.invoke(currentValue) ?: true
                     if (isValid) {
-                        val key = stringPreferencesKey(inputItem.key)
+                        val key = stringPreferencesKey(item.id)
                         scope.launch {
                             dataStore.edit { prefs -> prefs[key] = currentValue }
                         }
                         inputDialogState = null
                     } else {
-                        validationError = inputItem.validationFailMessage
+                        validationError = item.validationFailMessage
                     }
                 }) {
                     Text(R.string.ok)
@@ -274,15 +299,15 @@ fun SettingsList(
 fun NavGraphBuilder.settingsGraph(
     navController: NavController,
     rootItems: List<SettingItem>,
-    route: String,
+    id: String,
     deepLinks: List<NavDeepLink> = emptyList()
 ) {
-    composable(route, deepLinks = deepLinks) {
+    composable(id, deepLinks = deepLinks) {
         SettingsList(rootItems, navController)
     }
 
     rootItems.filterIsInstance<SettingItem.SubPage>().forEach { sub ->
-        composable(sub.route) {
+        composable(sub.id) {
             SettingsList(sub.children, navController)
         }
     }

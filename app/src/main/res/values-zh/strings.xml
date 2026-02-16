@@ -129,4 +129,11 @@
     <string name="activated">已激活</string>
     <string name="_package">软件包</string>
     <string name="select_app">选择应用</string>
+    <string name="scaler">Scaler</string>
+    <string name="enable">Enable</string>
+    <string name="font_scale">Font Scale</string>
+    <string name="density_scale">Density Scale</string>
+    <string name="signature_spoof">Signature Spoof</string>
+    <string name="input_signature">Input signature</string>
+    <string name="make_sole_signer">Make sole signer</string>
 </resources>

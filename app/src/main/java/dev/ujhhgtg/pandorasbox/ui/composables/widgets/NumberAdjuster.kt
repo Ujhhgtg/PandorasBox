@@ -1,4 +1,4 @@
-package dev.ujhhgtg.pandorasbox.ui.composables
+package dev.ujhhgtg.pandorasbox.ui.composables.widgets
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -38,9 +38,7 @@ fun <T> NumberAdjuster(
     maxValue: T,
     valueStep: T,
     onChange: (T) -> Unit
-)
-where T : Number
-{
+) where T : Number {
     var showDialog by remember { mutableStateOf(false) }
     var textFieldValue by remember { mutableStateOf(TextFieldValue(value.toString())) }
     val errorMessage = remember { mutableStateOf<String?>(null) }
@@ -68,7 +66,7 @@ where T : Number
                 onClick = {
                     val newValue = (value subtract valueStep).coerceIn(minValue, maxValue)
                     onChange(newValue as T)
-            }) {
+                }) {
                 Icon(
                     painter = painterResource(R.drawable.remove_24px),
                     contentDescription = "decrease"
@@ -79,7 +77,7 @@ where T : Number
                 onClick = {
                     val newValue = (value add valueStep).coerceIn(minValue, maxValue)
                     onChange(newValue as T)
-            }) {
+                }) {
                 Icon(
                     painter = painterResource(R.drawable.add_24px),
                     contentDescription = "increase",

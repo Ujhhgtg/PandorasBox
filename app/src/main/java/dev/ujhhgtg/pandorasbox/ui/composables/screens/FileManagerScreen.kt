@@ -79,12 +79,12 @@ import dev.ujhhgtg.pandorasbox.ui.activities.LocalNavController
 import dev.ujhhgtg.pandorasbox.ui.activities.LocalScrollBehavior
 import dev.ujhhgtg.pandorasbox.ui.activities.LocalTopBarSetter
 import dev.ujhhgtg.pandorasbox.ui.activities.MainActivity
-import dev.ujhhgtg.pandorasbox.ui.composables.ButtonSpacer
-import dev.ujhhgtg.pandorasbox.ui.composables.Icon
-import dev.ujhhgtg.pandorasbox.ui.composables.Text
 import dev.ujhhgtg.pandorasbox.ui.composables.dialogs.InputDialog
 import dev.ujhhgtg.pandorasbox.ui.composables.dialogs.OpenItemDialog
 import dev.ujhhgtg.pandorasbox.ui.composables.dialogs.toPx
+import dev.ujhhgtg.pandorasbox.ui.composables.widgets.ButtonSpacer
+import dev.ujhhgtg.pandorasbox.ui.composables.widgets.Icon
+import dev.ujhhgtg.pandorasbox.ui.composables.widgets.Text
 import dev.ujhhgtg.pandorasbox.utils.FileUtils
 import dev.ujhhgtg.pandorasbox.utils.PermissionManager
 import kotlinx.coroutines.CoroutineScope
@@ -719,10 +719,10 @@ fun FileManagerPane(
                             { menuExpanded = false },
                             { onNavigate(it); onLeaveSelectionMode() },
                             { showOpenFileDialog = true },
-                            { showRenameFileDialog = true },
-                            { onDelete(it); files = getFiles(path) },
-                            { onCopy(it); files = getFiles(path) },
-                            { onMove(it); files = getFiles(path) }
+                            { showRenameFileDialog = true; onLeaveSelectionMode() },
+                            { onDelete(it); files = getFiles(path); onLeaveSelectionMode() },
+                            { onCopy(it); files = getFiles(path); onLeaveSelectionMode() },
+                            { onMove(it); files = getFiles(path); onLeaveSelectionMode() }
                         )
 
                         if (showOpenFileDialog) {

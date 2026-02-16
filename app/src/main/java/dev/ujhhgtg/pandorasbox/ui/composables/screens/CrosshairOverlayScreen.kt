@@ -26,11 +26,11 @@ import dev.ujhhgtg.pandorasbox.services.CrosshairOverlayService
 import dev.ujhhgtg.pandorasbox.ui.activities.LocalActivityContext
 import dev.ujhhgtg.pandorasbox.ui.activities.LocalPrefsRepository
 import dev.ujhhgtg.pandorasbox.ui.activities.LocalScrollBehavior
-import dev.ujhhgtg.pandorasbox.ui.composables.ButtonSpacer
-import dev.ujhhgtg.pandorasbox.ui.composables.DefaultColumn
-import dev.ujhhgtg.pandorasbox.ui.composables.NumberAdjuster
-import dev.ujhhgtg.pandorasbox.ui.composables.OffsetAdjuster
-import dev.ujhhgtg.pandorasbox.ui.composables.Text
+import dev.ujhhgtg.pandorasbox.ui.composables.widgets.ButtonSpacer
+import dev.ujhhgtg.pandorasbox.ui.composables.widgets.DefaultColumn
+import dev.ujhhgtg.pandorasbox.ui.composables.widgets.NumberAdjuster
+import dev.ujhhgtg.pandorasbox.ui.composables.widgets.OffsetAdjuster
+import dev.ujhhgtg.pandorasbox.ui.composables.widgets.Text
 import dev.ujhhgtg.pandorasbox.ui.composables.dialogs.CrosshairOverlayAppChooserDialog
 import dev.ujhhgtg.pandorasbox.utils.PermissionManager
 

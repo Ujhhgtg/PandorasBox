@@ -22,9 +22,9 @@ import dev.ujhhgtg.pandorasbox.services.InputMapperService
 import dev.ujhhgtg.pandorasbox.ui.activities.InputMapperEditorActivity
 import dev.ujhhgtg.pandorasbox.ui.activities.LocalActivityContext
 import dev.ujhhgtg.pandorasbox.ui.activities.LocalScrollBehavior
-import dev.ujhhgtg.pandorasbox.ui.composables.ButtonSpacer
-import dev.ujhhgtg.pandorasbox.ui.composables.DefaultColumn
-import dev.ujhhgtg.pandorasbox.ui.composables.Text
+import dev.ujhhgtg.pandorasbox.ui.composables.widgets.ButtonSpacer
+import dev.ujhhgtg.pandorasbox.ui.composables.widgets.DefaultColumn
+import dev.ujhhgtg.pandorasbox.ui.composables.widgets.Text
 import dev.ujhhgtg.pandorasbox.utils.PermissionManager
 
 @OptIn(ExperimentalMaterial3Api::class)

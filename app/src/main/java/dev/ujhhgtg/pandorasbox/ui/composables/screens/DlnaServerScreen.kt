@@ -53,8 +53,8 @@ import dev.ujhhgtg.pandorasbox.R
 import dev.ujhhgtg.pandorasbox.services.DlnaServerService
 import dev.ujhhgtg.pandorasbox.ui.activities.LocalActivityContext
 import dev.ujhhgtg.pandorasbox.ui.activities.LocalScrollBehavior
-import dev.ujhhgtg.pandorasbox.ui.composables.ButtonSpacer
-import dev.ujhhgtg.pandorasbox.ui.composables.Text
+import dev.ujhhgtg.pandorasbox.ui.composables.widgets.ButtonSpacer
+import dev.ujhhgtg.pandorasbox.ui.composables.widgets.Text
 import dev.ujhhgtg.pandorasbox.utils.PermissionManager
 import dev.ujhhgtg.pandorasbox.utils.ServiceLocator
 import dev.ujhhgtg.pandorasbox.utils.tooltip
@@ -69,17 +69,22 @@ fun DlnaServerScreen(toggleService: () -> Unit) {
     val ctx = LocalActivityContext.current
     val scrollBehavior = LocalScrollBehavior.current
 
-    val pickAudio = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { playUri(ctx, it) }
-    val pickVideo = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { playUri(ctx, it) }
+    val pickAudio =
+        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { playUri(ctx, it) }
+    val pickVideo =
+        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { playUri(ctx, it) }
 
-    val devices = service?.deviceListFlow?.collectAsState(initial = emptyList())?.value ?: emptyList()
+    val devices =
+        service?.deviceListFlow?.collectAsState(initial = emptyList())?.value ?: emptyList()
     val selected = service?.selectedDeviceFlow?.collectAsState(initial = null)?.value
     val isPlaying = service?.isPlayingFlow?.collectAsState(initial = false)?.value ?: false
     val pos = service?.positionSecFlow?.collectAsState(initial = 0L)?.value ?: 0L
     val dur = service?.durationSecFlow?.collectAsState(initial = 0L)?.value ?: 0L
     val vol = service?.volumeFlow?.collectAsState(initial = 50)?.value ?: 50
-    val audioTracks = service?.audioTracksFlow?.collectAsState(initial = emptyList())?.value ?: emptyList()
-    val subTracks = service?.subtitleTracksFlow?.collectAsState(initial = emptyList())?.value ?: emptyList()
+    val audioTracks =
+        service?.audioTracksFlow?.collectAsState(initial = emptyList())?.value ?: emptyList()
+    val subTracks =
+        service?.subtitleTracksFlow?.collectAsState(initial = emptyList())?.value ?: emptyList()
     val selectedAudio = service?.selectedAudioFlow?.collectAsState(initial = null)?.value
     val selectedSub = service?.selectedSubtitleFlow?.collectAsState(initial = null)?.value
 
@@ -219,135 +224,150 @@ fun ControlPanel(
 //            .padding(16.dp),
 //        verticalArrangement = Arrangement.spacedBy(12.dp)
 //    ) {
-        SectionCard {
+    SectionCard {
+        Row(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = onPrev) {
+                Icon(
+                    modifier = Modifier.tooltip(stringResource(R.string.previous)),
+                    painter = painterResource(R.drawable.skip_previous_24px),
+                    contentDescription = stringResource(R.string.previous)
+                )
+            }
+            IconButton(onClick = onBackward) {
+                Icon(
+                    modifier = Modifier.tooltip(stringResource(R.string.rewind_10s)),
+                    painter = painterResource(R.drawable.replay_10_24px),
+                    contentDescription = stringResource(R.string.rewind_10s)
+                )
+            }
+            FilledIconButton(onClick = onPlayPause) {
+                if (isPlaying) {
+                    Icon(
+                        modifier = Modifier.tooltip(stringResource(R.string.pause)),
+                        painter = painterResource(R.drawable.pause_24px),
+                        contentDescription = stringResource(R.string.pause)
+                    )
+                } else {
+                    Icon(
+                        modifier = Modifier.tooltip(stringResource(R.string.play)),
+                        painter = painterResource(R.drawable.play_arrow_24px),
+                        contentDescription = stringResource(R.string.play)
+                    )
+                }
+            }
+            IconButton(onClick = onForward) {
+                Icon(
+                    modifier = Modifier.tooltip(stringResource(R.string.forward_10s)),
+                    painter = painterResource(R.drawable.forward_10_24px),
+                    contentDescription = stringResource(R.string.forward_10s)
+                )
+            }
+            IconButton(onClick = onNext) {
+                Icon(
+                    modifier = Modifier.tooltip(stringResource(R.string.next)),
+                    painter = painterResource(R.drawable.skip_next_24px),
+                    contentDescription = stringResource(R.string.next)
+                )
+            }
+        }
+    }
+
+    SectionCard {
+        val max = duration.coerceAtLeast(1).toFloat()
+        Column(Modifier.fillMaxWidth()) {
+            Slider(
+                value = position.toFloat().coerceIn(0f, max),
+                onValueChange = { onSeek(it.toLong()) },
+                valueRange = 0f..max
+            )
             Row(
                 Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                IconButton(onClick = onPrev) {
-                    Icon(
-                        modifier = Modifier.tooltip(stringResource(R.string.previous)),
-                        painter = painterResource(R.drawable.skip_previous_24px),
-                        contentDescription = stringResource(R.string.previous)
-                    )
-                }
-                IconButton(onClick = onBackward) {
-                    Icon(
-                        modifier = Modifier.tooltip(stringResource(R.string.rewind_10s)),
-                        painter = painterResource(R.drawable.replay_10_24px),
-                        contentDescription = stringResource(R.string.rewind_10s)
-                    )
-                }
-                FilledIconButton(onClick = onPlayPause) {
-                    if (isPlaying) {
-                        Icon(
-                            modifier = Modifier.tooltip(stringResource(R.string.pause)),
-                            painter = painterResource(R.drawable.pause_24px),
-                            contentDescription = stringResource(R.string.pause)
-                        )
-                    } else {
-                        Icon(
-                            modifier = Modifier.tooltip(stringResource(R.string.play)),
-                            painter = painterResource(R.drawable.play_arrow_24px),
-                            contentDescription = stringResource(R.string.play)
-                        )
-                    }
-                }
-                IconButton(onClick = onForward) {
-                    Icon(
-                        modifier = Modifier.tooltip(stringResource(R.string.forward_10s)),
-                        painter = painterResource(R.drawable.forward_10_24px),
-                        contentDescription = stringResource(R.string.forward_10s)
-                    )
-                }
-                IconButton(onClick = onNext) {
-                    Icon(
-                        modifier = Modifier.tooltip(stringResource(R.string.next)),
-                        painter = painterResource(R.drawable.skip_next_24px),
-                        contentDescription = stringResource(R.string.next)
-                    )
-                }
+                Text(formatTime(position), style = MaterialTheme.typography.labelSmall)
+                Text(formatTime(duration), style = MaterialTheme.typography.labelSmall)
             }
         }
+    }
 
-        SectionCard {
-            val max = duration.coerceAtLeast(1).toFloat()
-            Column(Modifier.fillMaxWidth()) {
-                Slider(
-                    value = position.toFloat().coerceIn(0f, max),
-                    onValueChange = { onSeek(it.toLong()) },
-                    valueRange = 0f..max
+    SectionCard {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            IconButton(onClick = onNext) {
+                Icon(
+                    modifier = Modifier.tooltip(stringResource(R.string.volume_down)),
+                    painter = painterResource(R.drawable.volume_down_24px),
+                    contentDescription = stringResource(R.string.volume_down)
                 )
-                Row(
-                    Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(formatTime(position), style = MaterialTheme.typography.labelSmall)
-                    Text(formatTime(duration), style = MaterialTheme.typography.labelSmall)
-                }
             }
-        }
-
-        SectionCard {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                IconButton(onClick = onNext) {
-                    Icon(
-                        modifier = Modifier.tooltip(stringResource(R.string.volume_down)),
-                        painter = painterResource(R.drawable.volume_down_24px),
-                        contentDescription = stringResource(R.string.volume_down)
-                    )
-                }
-                Slider(
-                    value = volume.toFloat(),
-                    onValueChange = { onVolumeChange(it.toInt()) },
-                    valueRange = 0f..100f,
-                    modifier = Modifier.weight(1f)
+            Slider(
+                value = volume.toFloat(),
+                onValueChange = { onVolumeChange(it.toInt()) },
+                valueRange = 0f..100f,
+                modifier = Modifier.weight(1f)
+            )
+            IconButton(onClick = onNext) {
+                Icon(
+                    modifier = Modifier.tooltip(stringResource(R.string.volume_up)),
+                    painter = painterResource(R.drawable.volume_up_24px),
+                    contentDescription = stringResource(R.string.volume_up)
                 )
-                IconButton(onClick = onNext) {
-                    Icon(
-                        modifier = Modifier.tooltip(stringResource(R.string.volume_up)),
-                        painter = painterResource(R.drawable.volume_up_24px),
-                        contentDescription = stringResource(R.string.volume_up)
-                    )
-                }
             }
         }
+    }
 
-        SectionCard {
-            TrackDropdown(stringResource(R.string.audio_track), painterResource(R.drawable.album_24px), audioTracks, selectedAudio, onAudioTrackSelect)
-        }
-        SectionCard {
-            TrackDropdown(stringResource(R.string.subtitles), painterResource(R.drawable.subtitles_24px), subtitleTracks, selectedSubtitle, onSubtitleSelect)
-        }
+    SectionCard {
+        TrackDropdown(
+            stringResource(R.string.audio_track),
+            painterResource(R.drawable.album_24px),
+            audioTracks,
+            selectedAudio,
+            onAudioTrackSelect
+        )
+    }
+    SectionCard {
+        TrackDropdown(
+            stringResource(R.string.subtitles),
+            painterResource(R.drawable.subtitles_24px),
+            subtitleTracks,
+            selectedSubtitle,
+            onSubtitleSelect
+        )
+    }
 
-        SectionCard {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth()
+    SectionCard {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Button(
+                onClick = { pickAudio.launch("audio/*") },
+                modifier = Modifier.weight(1f)
             ) {
-                Button(
-                    onClick = { pickAudio.launch("audio/*") },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Icon(painter = painterResource(R.drawable.music_note_24px), contentDescription = null)
-                    ButtonSpacer()
-                    Text(R.string.select_audio)
-                }
-                Button(
-                    onClick = { pickVideo.launch("video/*") },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Icon(painter = painterResource(R.drawable.movie_24px), contentDescription = null)
-                    ButtonSpacer()
-                    Text(R.string.select_video)
-                }
+                Icon(
+                    painter = painterResource(R.drawable.music_note_24px),
+                    contentDescription = null
+                )
+                ButtonSpacer()
+                Text(R.string.select_audio)
+            }
+            Button(
+                onClick = { pickVideo.launch("video/*") },
+                modifier = Modifier.weight(1f)
+            ) {
+                Icon(painter = painterResource(R.drawable.movie_24px), contentDescription = null)
+                ButtonSpacer()
+                Text(R.string.select_video)
             }
         }
+    }
 //    }
 }
 
@@ -390,7 +410,11 @@ fun TrackDropdown(
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.weight(1f)
             )
-            Icon(Icons.Default.ArrowDropDown, contentDescription = stringResource(R.string.more), modifier = Modifier.tooltip(stringResource(R.string.more)))
+            Icon(
+                Icons.Default.ArrowDropDown,
+                contentDescription = stringResource(R.string.more),
+                modifier = Modifier.tooltip(stringResource(R.string.more))
+            )
         }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             DropdownMenuItem(
